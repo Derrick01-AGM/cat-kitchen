@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>猫猫回转食堂 · 第一关</title><link rel="stylesheet" href="level1.css"></head>
+<body><main class="game-shell">
+<header class="page-header"><div><span class="eyebrow">CAT KITCHEN · LEVEL 01</span><h1>猫猫回转食堂 <small>第一关</small></h1></div><div class="header-actions"><button id="music-toggle" type="button" class="quiet" aria-pressed="true">音乐：开</button><button id="restart" type="button">重新开始</button><button id="exit" type="button" class="quiet">退出本局 · Esc</button></div></header>
+<section class="hud" aria-label="本局状态"><span>营业倒计时 <b id="time">180</b> 秒</span><span>分数 <b id="score">0</b></span><span>完成 <b id="served">0</b> 单</span><span>手上 <b id="hand">空</b></span><span id="skill" class="skill-status">J · 脊背龙可用</span></section>
+<section class="order-board" aria-label="顾客订单"><div class="order-rod"></div><div id="orders"></div></section>
+<div class="restaurant-map" data-guides="hidden"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1440 960" role="img" aria-label="米黄色卡通回转餐厅地图，中央大厨房、闭合传送带和十二个外围座位">
+    <defs>
+      <pattern id="rm-wood" width="120" height="54" patternUnits="userSpaceOnUse">
+        <rect width="120" height="54" fill="#efddba"/>
+        <path d="M0 53.5H120M119.5 0V54" stroke="#d9bd91" stroke-width="2"/>
+        <path d="M13 15H55M72 37H105" stroke="#e4cda7" stroke-width="2" stroke-linecap="round"/>
+      </pattern>
+      <pattern id="rm-tiles" width="64" height="64" patternUnits="userSpaceOnUse">
+        <rect width="64" height="64" fill="#fff8e5"/>
+        <path d="M0 0H64V64" fill="none" stroke="#eadbc0" stroke-width="2"/>
+        <rect x="5" y="5" width="54" height="54" rx="6" fill="#fffaf0" opacity=".55"/>
+      </pattern>
+      <pattern id="rm-wall" width="30" height="90" patternUnits="userSpaceOnUse">
+        <rect width="30" height="90" fill="#fff2d3"/>
+        <path d="M15 8V82" stroke="#f4e4bf" stroke-width="2"/>
+      </pattern>
+      <filter id="rm-shadow" x="-30%" y="-30%" width="160%" height="170%">
+        <feDropShadow dx="0" dy="5" stdDeviation="3" flood-color="#9b7851" flood-opacity=".15"/>
+      </filter>
+      <!-- 回转中心线：左上直线起点 (300,220)，顺时针闭合。 -->
+      <path id="rm-belt-path" d="M300 220H1140A80 80 0 0 1 1220 300V680A80 80 0 0 1 1140 760H300A80 80 0 0 1 220 680V300A80 80 0 0 1 300 220Z"/>
+      <g id="rm-stool">
+        <ellipse cy="19" rx="35" ry="13" fill="#ad865b" opacity=".16"/>
+        <rect x="-24" y="8" width="9" height="21" rx="4" fill="#b68e64"/>
+        <rect x="15" y="8" width="9" height="21" rx="4" fill="#b68e64"/>
+        <rect x="-32" y="-23" width="64" height="50" rx="18" fill="#b68e64"/>
+        <rect x="-30" y="-26" width="60" height="44" rx="16" fill="#e6b96b" stroke="#aa8158" stroke-width="3"/>
+        <path d="M-18-14H18" stroke="#f7d89f" stroke-width="5" stroke-linecap="round"/>
+      </g>
+      <g id="rm-plant">
+        <ellipse cy="27" rx="30" ry="11" fill="#b29665" opacity=".13"/>
+        <path d="M-24 0H24L18 29H-18Z" fill="#d99978" stroke="#b78163" stroke-width="3"/>
+        <rect x="-28" y="-4" width="56" height="11" rx="5" fill="#e8b294"/>
+        <path d="M0 0V-38" stroke="#6c8b5d" stroke-width="5"/>
+        <ellipse cx="-17" cy="-30" rx="14" ry="24" transform="rotate(-35 -17 -30)" fill="#91ae77"/>
+        <ellipse cx="19" cy="-37" rx="13" ry="25" transform="rotate(35 19 -37)" fill="#a3b982"/>
+        <ellipse cy="-49" rx="12" ry="22" fill="#789b69"/>
+      </g>
+      <g id="rm-counter">
+        <rect x="-63" y="-33" width="126" height="78" rx="13" fill="#d6bd99"/>
+        <rect x="-66" y="-40" width="132" height="72" rx="13" fill="#f1e4cb" stroke="#baa17c" stroke-width="3"/>
+        <rect x="-55" y="-31" width="110" height="53" rx="9" fill="#fff8e8"/>
+        <path d="M-22 39H22" stroke="#b59b77" stroke-width="4" stroke-linecap="round"/>
+      </g>
+    </defs>
+
+    <!-- 地板和墙面 -->
+    <rect x="30" y="30" width="1380" height="900" rx="40" fill="#c5a57a" opacity=".18"/>
+    <rect x="25" y="20" width="1390" height="908" rx="40" fill="#d6b789" stroke="#b48e63" stroke-width="4"/>
+    <rect x="45" y="44" width="1350" height="858" rx="25" fill="url(#rm-wood)"/>
+    <path d="M70 35H1370Q1400 35 1400 65V132H40V65Q40 35 70 35Z" fill="url(#rm-wall)"/>
+    <path d="M43 131H1397" stroke="#ba9568" stroke-width="8"/>
+    <path d="M45 142H1395" stroke="#dec7a1" stroke-width="7"/>
+    <rect x="40" y="143" width="17" height="733" rx="8" fill="#f7e9cc"/>
+    <rect x="1383" y="143" width="17" height="733" rx="8" fill="#f7e9cc"/>
+    <path d="M58 889H1380" stroke="#bd9b70" stroke-width="7"/>
+
+    <!-- 墙上的窗户、招牌和小装饰 -->
+    <g stroke="#bea17c" stroke-width="4">
+      <rect x="190" y="53" width="198" height="69" rx="13" fill="#f9f2de"/>
+      <rect x="200" y="62" width="178" height="51" rx="8" fill="#dbe9da" stroke="none"/>
+      <path d="M289 62V114"/>
+      <rect x="1050" y="53" width="198" height="69" rx="13" fill="#f9f2de"/>
+      <rect x="1060" y="62" width="178" height="51" rx="8" fill="#dbe9da" stroke="none"/>
+      <path d="M1149 62V114"/>
+    </g>
+    <path d="M210 72L239 103M218 68L246 98M1070 72L1099 103" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".6"/>
+    <rect x="535" y="45" width="370" height="81" rx="22" fill="#fff9e9" stroke="#c7a77b" stroke-width="3" filter="url(#rm-shadow)"/>
+    <g transform="translate(580 86)" fill="#d5a46b">
+      <ellipse cy="7" rx="13" ry="10"/><ellipse cx="-13" cy="-8" rx="5" ry="7"/><ellipse cx="0" cy="-15" rx="5" ry="7"/><ellipse cx="13" cy="-8" rx="5" ry="7"/>
+    </g>
+    <text x="742" y="96" font-size="29" font-weight="700">猫猫回转食堂</text>
+    <g fill="#d8a07d" stroke="#bf8766" stroke-width="2">
+      <path d="M451 39V65M991 39V65"/>
+      <rect x="433" y="63" width="36" height="46" rx="14"/>
+      <rect x="973" y="63" width="36" height="46" rx="14"/>
+    </g>
+    <path d="M440 74H462M440 94H462M980 74H1002M980 94H1002" stroke="#f5d6b6" stroke-width="3"/>
+
+    <!-- 中央厨房：地砖区宽 856、高 412，中央留出宽通道。 -->
+    <rect x="289" y="279" width="862" height="425" rx="25" fill="#a88962" opacity=".16"/>
+    <rect x="287" y="272" width="866" height="424" rx="25" fill="#d5c3a3"/>
+    <rect x="297" y="282" width="846" height="403" rx="18" fill="url(#rm-tiles)" stroke="#e6d6b8" stroke-width="3"/>
+    <rect x="596" y="458" width="248" height="58" rx="24" fill="#f5e9cf" opacity=".8"/>
+    <text x="720" y="495" font-size="24" fill="#b9a485">中央厨房</text>
+
+    <!-- 闭合的浅木色回转餐台 -->
+    <g fill="none" stroke-linejoin="round">
+      <use href="#rm-belt-path" xlink:href="#rm-belt-path" stroke="#a98256" stroke-width="88"/>
+      <use href="#rm-belt-path" xlink:href="#rm-belt-path" stroke="#dbb785" stroke-width="80"/>
+      <use href="#rm-belt-path" xlink:href="#rm-belt-path" stroke="#f3dbb2" stroke-width="62"/>
+      <use href="#rm-belt-path" xlink:href="#rm-belt-path" stroke="#fbebca" stroke-width="48"/>
+      <use href="#rm-belt-path" xlink:href="#rm-belt-path" stroke="#c5a173" stroke-width="47" stroke-dasharray="2 22" opacity=".33" class="restaurant-map__slats"/>
+    </g>
+    <!-- 四个顺时针方向箭头 -->
+    <g fill="none" stroke="#b49162" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M686 210L698 220L686 230"/>
+      <path d="M1210 472L1220 484L1230 472"/>
+      <path d="M754 750L742 760L754 770"/>
+      <path d="M210 506L220 494L230 506"/>
+    </g>
+
+    <!-- 十二个座位；暂不绘制顾客，给角色和订单气泡留出位置。 -->
+    <g>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(430 165)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(625 165)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(820 165)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(1015 165)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(430 824)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(625 824)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(820 824)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(1015 824)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(148 396) rotate(90)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(148 588) rotate(90)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(1292 396) rotate(-90)"/>
+      <use href="#rm-stool" xlink:href="#rm-stool" transform="translate(1292 588) rotate(-90)"/>
+    </g>
+
+    <!-- 十五个等大桌面：上排七个、下排六个、左右垃圾桶。 -->
+    <g>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(390 342) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(500 342) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(610 342) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(720 342) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(830 342) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(940 342) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(1050 342) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(355 486) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(1085 486) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(390 624) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(522 624) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(654 624) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(786 624) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(918 624) scale(0.7)"/>
+      <use href="#rm-counter" xlink:href="#rm-counter" transform="translate(1050 624) scale(0.7)"/>
+    </g>
+
+    <!-- 上餐通道：连接右下角装盘位置与传送带中心线。 -->
+    <g transform="translate(7 0)">
+    <rect x="1019" y="658" width="48" height="84" rx="10" fill="#e1c498" stroke="#ba986b" stroke-width="3"/>
+    <path d="M1030 675H1056M1030 687H1056M1030 699H1056M1030 711H1056M1030 723H1056" stroke="#f7e8cb" stroke-width="5"/>
+    <rect x="1017" y="739" width="52" height="41" rx="10" fill="none" stroke="#92aa77" stroke-width="3" stroke-dasharray="5 5"/>
+
+    </g>
+    <!-- 轻量装饰集中在边缘，不占厨房的通道。 -->
+    <use href="#rm-plant" xlink:href="#rm-plant" transform="translate(108 248)"/>
+    <use href="#rm-plant" xlink:href="#rm-plant" transform="translate(1332 248)"/>
+    <use href="#rm-plant" xlink:href="#rm-plant" transform="translate(105 807)"/>
+    <use href="#rm-plant" xlink:href="#rm-plant" transform="translate(1334 807)"/>
+    <rect x="613" y="866" width="214" height="28" rx="12" fill="#d4b086"/>
+    <rect x="623" y="862" width="194" height="22" rx="10" fill="#eacfa6"/>
+    <text x="720" y="879" font-size="13">欢迎光临 · ENTRANCE</text>
+
+    <!-- 这些标签是开发占位提示，新布局使用 Canvas 绘制站点名。 -->
+    <g class="restaurant-map__guides"></g>
+  </svg>
+<canvas id="game" class="restaurant-map__game-layer" width="1440" height="960" tabindex="0" aria-label="第一关厨房，WASD 移动，E 放取，按住 F 切菜，E 放入后自动煎炸，Q 投掷，J 技能"></canvas>
+<div id="start-overlay" class="round-overlay start-overlay" role="dialog" aria-modal="true" aria-labelledby="start-title" aria-describedby="start-intro"><section class="result-card start-card">
+<span class="eyebrow">CAT KITCHEN · LEVEL 01</span><h2 id="start-title">猫猫回转食堂</h2><p class="start-subtitle">温馨回转餐厅 · 新手练习关</p>
+<div class="start-badges"><span>180 秒营业</span><span>四道家常料理</span><span>熟悉厨房操作</span></div>
+<p id="start-intro">先从免加工的面包开始，熟悉取料、加工与回转上菜。</p>
+<div class="start-menu" aria-label="本关四道菜"><span>熟番茄</span><span>面包</span><span>汉堡</span><span>薯条</span></div>
+<ul class="start-features"><li><strong>看订单做菜。</strong>把成品放上回转带，送到顾客面前。</li><li><strong>按住 F 切菜。</strong>松手或离开保留进度，回来继续。</li><li><strong>入锅后自动加工。</strong>放好材料即可离开，去准备下一道菜。</li></ul>
+<p class="start-controls"><kbd>W A S D</kbd> 移动　<kbd>E</kbd> 拿放　<kbd>按住 F</kbd> 切菜<br><kbd>Shift</kbd> 冲刺　<kbd>J</kbd> 脊背龙加速</p>
+<button id="start-game" type="button">开始营业</button><p class="start-note">准备好再开始，阅读介绍时不计时。</p>
+</section></div>
+<div id="round-overlay" class="round-overlay" hidden><section class="result-card"><span class="eyebrow">CAT KITCHEN</span><h2 id="result-title">营业结束</h2><p id="result-score"></p><p id="result-detail"></p><button id="play-again" type="button">再开一局</button></section></div></div>
+<p id="message" role="status" aria-live="polite">WASD 移动，Shift 冲刺，E 放取，按住 F 切菜，J 技能，轻按 Q 放地上，长按 Q 投掷。</p>
+<details class="guide"><summary>操作与四道菜的做法</summary><div class="guide-body"><p><kbd>W A S D</kbd> 移动 · <kbd>Shift</kbd> 冲刺 · <kbd>E</kbd> 拿取 / 放下 / 捡起 · <kbd>F</kbd> 按住切菜，中断保留进度 · <kbd>J</kbd> 脊背龙技能 · <kbd>Q</kbd> 轻按落地，长按蓄力、松手投掷 · <kbd>Esc</kbd> 退出本局</p><ul><li>熟番茄：番茄箱 → 切菜台 E 放、按住 F 切、E 拿 → 灶台 E 放、自动煮熟、E 拿 → 放传送带。</li><li>面包：面包箱 E 拿 → 放传送带，无需加工。</li><li>汉堡：面包 + 切好的番茄 + 熟肉饼，逐样 E 放到同一备菜 / 出餐台，自动合成后 E 拿走。生肉饼先在灶台 E 放、自动煎熟、E 拿。</li><li>薯条：土豆箱 → 切菜台 E 放、按住 F 切、E 拿 → 油锅 E 放、自动炸制、E 拿 → 放传送带。</li></ul><p>切菜需累计按住 F 加工 1.5 秒，松手或离开会暂停并保留进度，回来按住 F 接着切；拿走或更换台上的材料后进度清零。灶台和油锅保持常开，按 E 放入合适材料就自动加工 1.5 秒，无需 F；可以离开准备其他食材，完成后 E 拿取。投进灶台 / 油锅会自动开始加工，同样需要等待；投到切菜台后仍需走近并按住 F。J 开启脊背龙状态，持续 16 秒：走路和冲刺速度 ×1.8，切菜、煎煮和油炸速度均 ×2（各需 0.75 秒）；从发动时起冷却 30 秒。同时最多 5 位顾客（含等待和用餐中的顾客）。顾客只取自己点的菜，吃完 +15 分，超时离开 -5 分，最低 0 分。</p><p>背景音乐音量 25%，整局循环播放。右上角可开关；切出窗口暂停，回来继续；本局结束停止，重开从头播放。如浏览器拦截自动播放，首次点击或按操作键即可启动。</p></div></details>
+</main><audio id="bgm" src="assets/bgm.m4a" loop preload="auto" hidden></audio><script src="level1.js"></script></body></html>
