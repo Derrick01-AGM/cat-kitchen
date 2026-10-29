@@ -359,9 +359,9 @@ function beltPos(progress){return map.belt.pointAt(progress*map.belt.length);}
 var seats=map.seats.map((s,i)=>({...s,id:i,progress:projectOnBelt(s.x,s.y)}));
 var loadProgress=projectOnBelt(map.belt.loadPoint.x,map.belt.loadPoint.y),g,lastTime=performance.now();
 
-var sfx=window.CatKitchenSfx.create({allowed:()=>typeof g!=='undefined'&&g&&g.running&&!g.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'stove':{src:'assets/sfx/stove.mp3',from:4,to:7,volume:0.32}}});
+var sfx=window.CatKitchenSfx.create({allowed:()=>typeof g!=='undefined'&&g&&g.running&&!g.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'stove':{src:'assets/sfx/stove.mp3',from:4,to:7,volume:0.32},'bin':{src:'assets/sfx/bin.mp3',from:0,to:null,volume:0.5},'neige':{src:'assets/sfx/neige.mp3',from:0,to:null,volume:0.4}}});
 function syncLevelSounds(){
- sfx.sync(!usable()?[]:[...(g.cutting.active&&g.keys.f?['cut']:[]),...(g.cooking.active?['stove']:[]),...(g.frying.active?['fryer']:[])]);
+ sfx.sync(!usable()?[]:[...(g.cutting.active&&g.keys.f?['cut']:[]),...(g.cooking.active?['stove']:[]),...(g.frying.active?['fryer']:[]),...(g.spinoTimer>0?['neige']:[])]);
 }
 function reset(start=true){sfx.stopAll();
   g={cat:{...map.spawn,speed:LEVEL.walkSpeed,sprint:LEVEL.sprintSpeed,r:20,dirX:0,dirY:-1},keys:{},hasItem:null,stations:stationDefs,
@@ -383,7 +383,7 @@ function clearCutting(){g.cutting.active=false;g.cutting.progress=0;}
 // 仅接入同学的 K 技能效果，操作键改为 J；冷却从发动时起算。
 function useJ(){
   if(!usable()||g.kCD>0)return;
-  g.kCD=30;g.spinoTimer=16;g.spinoTextTimer=0;g.spinoTexts=[];
+  g.kCD=30;g.spinoTimer=16;syncLevelSounds();g.spinoTextTimer=0;g.spinoTexts=[];
   g.msg='脊背龙状态！16 秒内移动 ×1.8、切菜 / 煎煮 / 油炸速度 ×2，冷却 30 秒。';
 }
 function canStand(x,y){
@@ -438,7 +438,7 @@ function interact(){
   }
   const st=findNearestStation(g.cat);if(!st){g.msg='走近工作台，或走到地上食材旁按 E。';return;}
   if(st.type==='crate'){if(g.hasItem)g.msg='手上已经有东西了。';else {g.hasItem=st.item;g.msg='从'+st.label+'拿出了'+ITEMS[st.item].name;}return;}
-  if(st.type==='trash'){g.msg=g.hasItem?'丢掉了'+ITEMS[g.hasItem].name:'手上是空的。';g.hasItem=null;return;}
+  if(st.type==='trash'){if(g.hasItem)sfx.play('bin');g.msg=g.hasItem?'丢掉了'+ITEMS[g.hasItem].name:'手上是空的。';g.hasItem=null;return;}
   if(st.type==='plate'){if(g.hasItem){if(loadBelt(g.hasItem))g.hasItem=null;}else g.msg='拿着做好的菜再按 E。';return;}
   const layers=surfaceFor(st),process=processFor(st);
   if(process?.active){g.msg=st.label+'正在加工，完成后再取。';return;}
@@ -473,7 +473,7 @@ function doThrow(){
 function handleThrowLanding(it){
   const candidates=stationList.filter(st=>Math.abs(it.x-st.x)<st.w/2+14&&Math.abs(it.y-(st.y-3))<st.h/2+14).sort((a,b)=>Math.hypot(it.x-a.x,it.y-a.y)-Math.hypot(it.x-b.x,it.y-b.y));
   const st=candidates[0];if(!st||st.type==='crate')return false;
-  if(st.type==='trash'){g.msg='食材飞进了垃圾桶。';return true;}
+  if(st.type==='trash'){sfx.play('bin');g.msg='食材飞进了垃圾桶。';return true;}
   if(st.type==='plate')return loadBelt(it.item);
   if(st.type==='surface')return putSurface(st,it.item);
   const layers=surfaceFor(st),process=processFor(st);

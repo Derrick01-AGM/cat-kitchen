@@ -376,7 +376,7 @@ function collisionRects(){return[{x:64,y:138,w:72,h:714},...ROWS.flatMap((y,row)
 function canStand(x,y){if(x<42||x>1550||y<119||y>863)return false;const r=18;return!collisionRects().some(o=>{const nx=Math.max(o.x,Math.min(o.x+o.w,x)),ny=Math.max(o.y,Math.min(o.y+o.h,y));return(x-nx)**2+(y-ny)**2<r*r;});}
 function announce(message){if(state.lastMessage===message&&state.time-statusTimer<2)return;state.lastMessage=message;statusTimer=state.time;$('status').textContent=message;}
 function mapInteract(){if(state.paused||state.hidden)return;const p=state.cat;let chosen=null;for(const surface of state.surfaces){for(let i=0;i<surface.slots.length;i++){const pos=slotPosition(surface,i),dist=Math.hypot(pos.x-p.x,pos.y-p.y),valid=p.held?!surface.slots[i]:!!surface.slots[i],score=dist+((pos.x-p.x)*p.face < -8?90:0);if(valid&&dist<(surface.type==='cart'?150:119)&&(!chosen||score<chosen.score))chosen={surface,i,dist,score};}}
- if(!chosen){announce(p.held?'靠近一个空台面，按 E 放下餐盘。':'靠近摊位或推车上的餐盘，按 E 拿起。');return;}const s=chosen.surface;if(p.held){s.slots[chosen.i]=p.held;p.held=null;announce('餐盘已放到'+(s.type==='cart'?'小吃推车':'固定摊位')+' '+(s.row+1)+'。');}else{p.held=s.slots[chosen.i];s.slots[chosen.i]=null;announce('拿到示意餐盘。可以搬到另一组摊位或空推车上。');}}
+ if(!chosen){announce(p.held?'靠近一个空台面，按 E 放下餐盘。':'靠近摊位或推车上的餐盘，按 E 拿起。');return;}const s=chosen.surface;if(p.held){s.slots[chosen.i]=p.held;p.held=null;combineCart(s);announce('餐盘已放到'+(s.type==='cart'?'小吃推车':'固定摊位')+' '+(s.row+1)+'。');}else{p.held=s.slots[chosen.i];s.slots[chosen.i]=null;announce('拿到示意餐盘。可以搬到另一组摊位或空推车上。');}}
 function syncCartButtons(){state.carts.forEach((t,i)=>{const btn=$(['impound-0','impound','impound-2'][i]);btn.setAttribute('aria-pressed',String(t.impounded));btn.textContent=(t.impounded?'归还 ':'暂扣 ')+(i+1)+' 号推车';});}
 function toggleImpound(index=1){if(state.paused)return;if(typeof index!=='number')index=1;const t=state.carts[index];if(!t)return;t.impounded=!t.impounded;t.targetX=t.impounded?1350:CART_HOME_X;t.targetY=CART_HOME_Y[index];state.impounded=state.carts.some(t=>t.impounded);syncCartButtons();announce(t.impounded?'第 '+(index+1)+' 辆推车移入暂扣区，对应通道随之打开，可穿过马路。':'第 '+(index+1)+' 辆推车归位；三辆全部在位时会重新封住街边小吃区。');}
 const PATROL_SPEED=94*1.2;
@@ -667,7 +667,7 @@ const kitchenSpecs=[
  ['prep1','surface','上方备菜',100,231],['cutting3','cutting','切菜板',100,301],['trash','trash','垃圾桶',100,371],
  ['riceCrate','crate','米箱',354,465,'rawRice','level2'],
  ['fishPool','pool','生三文鱼',165,465,'salmon','level2'],['shrimpPool','pool','生虾',228,465,'shrimp','level2'],['squidPool','pool','生鱿鱼',291,465,'squid','level2'],
- ['cutting2','cutting','切菜台',643,825,null,'level2'],['oven','oven','烤箱',535,465,null,'level2'],['fryer2','fryer','油锅',620,465,null,'level2'],
+ ['cutting2','cutting','切菜台',643,825,null,'level2'],['oven','oven','烧烤架',535,465,null,'level2'],['fryer2','fryer','油锅',620,465,null,'level2'],
  ['cooker','cooker','高压锅',100,631,null,'level2'],['noriCrate','crate','海苔箱',100,701,'nori','level2'],
  ['batterCrate','crate','面糊箱',100,771,'batter','level2'],['prep3','surface','下方备菜',169,825,null,'level2']
 ];
@@ -703,7 +703,7 @@ function kitchenInteract(){
   if(p.held){announce('手里已经有'+ITEMS[p.held]?.name+'，先放到备菜台或推车上。');return;}
   p.held=st.item;announce('拿到'+ITEMS[st.item].name+'。'+(st.type==='pool'?'水池可直接取料，无需捕鱼。':''));syncTestHud();return;
  }
- if(st.type==='trash'){if(p.held){p.held=null;announce('已清空手中的食材。');}else announce('手上没有需要丢弃的东西。');syncTestHud();return;}
+ if(st.type==='trash'){if(p.held){sfx.play('bin');p.held=null;announce('已清空手中的食材。');}else announce('手上没有需要丢弃的东西。');syncTestHud();return;}
  if(!p.held){
   if(!st.layers.length){announce(st.label+'是空的，先放入材料。');return;}
   if(st.process.active&&st.type!=='cutting'){announce('正在加工，完成后再按 E 拿走。');return;}
@@ -830,10 +830,10 @@ var music=(()=>{
 // 第三关融合玩法：同学版的技能、投掷、撞车和拖车，配合已确认的地图与完整菜谱。
 const LEVEL3={duration:300,walkSpeed:240,sprintSpeed:330,patrolSpeed:150,firstVisit:12,warning:3,hitDuration:1.8,patience:52.5,penalty:5,maxCustomers:7,maxPerQueue:3,firstCustomer:5};
 
-var sfx=window.CatKitchenSfx.create({allowed:()=>state?.level?.started&&!state.level.over&&!state.paused&&!state.hidden,clips:{'car':{src:'assets/sfx/car.mp3',from:0,to:null,volume:0.12},'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.5},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'hiss':{src:'assets/sfx/hiss.mp3',from:0,to:2,volume:0.55},'ice':{src:'assets/sfx/ice.mp3',from:2,to:5,volume:0.32},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'boil':{src:'assets/sfx/boil.m4a',from:0,to:3,volume:0.3},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'stove':{src:'assets/sfx/stove.mp3',from:4,to:7,volume:0.32}}});
+var sfx=window.CatKitchenSfx.create({allowed:()=>state?.level?.started&&!state.level.over&&!state.paused&&!state.hidden,clips:{'bin':{src:'assets/sfx/bin.mp3',from:0,to:null,volume:0.5},'neige':{src:'assets/sfx/neige.mp3',from:0,to:null,volume:0.4},'car':{src:'assets/sfx/car.mp3',from:0,to:null,volume:0.12},'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.5},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'hiss':{src:'assets/sfx/hiss.mp3',from:0,to:2,volume:0.55},'ice':{src:'assets/sfx/ice.mp3',from:2,to:5,volume:0.32},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'boil':{src:'assets/sfx/boil.m4a',from:0,to:3,volume:0.3},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'stove':{src:'assets/sfx/stove.mp3',from:4,to:7,volume:0.32}}});
 function syncLevelSounds(){
  if(state.cat.stun<=0)sfx.stop('stun');
- const names=[];
+ const names=state.level.boost>0?['neige']:[];
  for(const st of state.test?.stations||[]){
   if(st.process.active){if(st.type==='cutting')names.push('cut');else if(st.type==='stove')names.push('stove');else if(st.type==='fryer')names.push('fryer');else if(st.type==='oven')names.push('oven');else if(st.type==='iceMachine'||st.type==='foamMachine')names.push('ice');}
   if(st.type==='teaKettle'&&st.kettle.stage==='brewing')names.push('boil');
@@ -894,7 +894,7 @@ function testInteract(){
 }
 function useLevelSkill(key){
  if(!canAct())return;const l=state.level,p=state.patrol;
- if(key==='j'&&l.jCD<=0){l.jCD=30;l.boost=16;announce('脊背龙：16 秒移速 ×1.8、加工速度 ×2！');}
+ if(key==='j'&&l.jCD<=0){l.jCD=30;l.boost=16;syncLevelSounds();announce('脊背龙：16 秒移速 ×1.8、加工速度 ×2！');}
  if(key==='k'&&l.kCD<=0){l.kCD=30;l.freeze=5;l.burst=1.5;sfx.play('laowu');announce('老吴：顾客与城管冻结 5 秒。');}
  if(key==='l'&&l.lCD<=0){
   if(!p.active&&p.warning<=0){announce('城管不在场，暂时不用哈气。');return;}
@@ -1029,10 +1029,10 @@ function placeThrown(kind,x,y,target){
  if(!target)return false;
  if(target.type==='cart'){
   const cart=state.carts[target.row],surface=cartSurface(target.row);if(cart.impounded||cart.carried||Math.abs(cart.x-CART_HOME_X)>1||surface.slots[target.index])return false;
-  surface.slots[target.index]=kind;return true;
+  surface.slots[target.index]=kind;combineCart(surface);return true;
  }
  const st=state.test.stations.find(s=>s.id===target.id);if(!st)return false;const plan=throwStationPlan(st,kind);if(!plan.ok)return false;
- if(st.type==='trash')return true;
+ if(st.type==='trash'){sfx.play('bin');return true;}
  if(st.type==='surface'){st.layers=plan.layers;return true;}
  if(st.type==='teaKettle'){st.kettle.stage='filled';st.kettle.progress=0;return true;}
  st.layers=[kind];st.process={active:st.type!=='cutting',progress:0,duration:plan.recipe?.[1]??1.5};if(plan.result)st.pendingResult=plan.result;
@@ -1186,6 +1186,37 @@ drawDessertStation=function(st){
  }
  c.restore();const y=st.y+(st.y>790?-55:40);text(c,st.label,st.x,y,12,'#624e36',800);
  text(c,{empty:'先 E 加水',filled:'按 F 煮 3 秒',brewing:'煮茶中 · 可离开',ready:pot.cupsLeft+'/5 杯 · E 接茶'}[pot.stage],st.x,y+15,10,'#788760');
+};
+
+// 四个摆盘位作为同一个合成区域；只消耗匹配的材料，其他物品留在原位。
+function combineCart(surface){
+ let changed=true;
+ while(changed){
+  changed=false;
+  for(const recipe of PREP_RECIPES){
+   const indices=[],used=new Set();
+   for(const part of recipe.parts){const index=surface.slots.findIndex((kind,i)=>kind===part&&!used.has(i));if(index<0)break;indices.push(index);used.add(index);}
+   if(indices.length!==recipe.parts.length)continue;
+   const place=Math.min(...indices);for(const index of indices)surface.slots[index]=null;surface.slots[place]=recipe.result;changed=true;
+  }
+  for(let cup=0;cup<surface.slots.length;cup++){
+   if(!CUP_CONTENTS.has(surface.slots[cup]))continue;
+   for(let i=0;i<surface.slots.length;i++){
+    if(i===cup||!surface.slots[i])continue;const result=cupWithIngredient(surface.slots[cup],surface.slots[i]);
+    if(result){surface.slots[cup]=result;surface.slots[i]=null;changed=true;}
+   }
+  }
+ }
+}
+const paintPreGrillJapaneseStation=drawJapaneseStation;
+drawJapaneseStation=function(st){
+ if(st.type!=='oven'){paintPreGrillJapaneseStation(st);return;}
+ const c=ctx;c.save();c.translate(st.x,st.y);c.scale(st.scale,st.scale);
+ rr(c,-53,-27,106,61,8,'#af9676','#947d60',1.5);
+ window.paintKitchenGrill(c,0,0,st.process.active,st.layers[0]?()=>drawIngredient(c,0,-4,st.layers[0],43):null,state.time);c.restore();
+ const compact=st.y===465,y=st.y+(compact?31:40);text(c,st.label,st.x,y,12,'#624e36',800);
+ if(!compact)text(c,st.process.active?'烧烤中…':'放入自动加工',st.x,y+15,10,'#788760');
+ if(st.process.active){rr(c,st.x-26,st.y+21,52,4,2,'#c7bb98');rr(c,st.x-26,st.y+21,52*Math.min(1,st.process.progress/st.process.duration),4,2,'#819f68');}
 };
 
 staticScene();reset();function frame(t){if(!previous)previous=t;step((t-previous)/1000);previous=t;draw();raf=requestAnimationFrame(frame);}raf=requestAnimationFrame(frame);

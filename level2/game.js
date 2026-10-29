@@ -14,7 +14,7 @@ const BELT={left:245,top:235,right:1195,bottom:695,radius:64,width:70,speed:126}
 BELT.length=2*(BELT.right-BELT.left+BELT.bottom-BELT.top-4*BELT.radius)+2*Math.PI*BELT.radius;
 const topStations=[
   {type:'crate',label:'米箱',supply:'rawRice'},{type:'counter',label:'备菜台1'},
-  {type:'oven',label:'烤箱'},{type:'board',label:'切菜台1'},
+  {type:'oven',label:'烧烤架'},{type:'board',label:'切菜台1'},
   {type:'crate',label:'海苔箱',supply:'nori'},{type:'counter',label:'备菜台2'},
   {type:'marinade',label:'生腌区'},{type:'trash',label:'垃圾桶1'}
 ];
@@ -77,7 +77,7 @@ function assemblePrep(table){
 function interactTable(table){
   const held=state.hasFood,foods=tableFoods(table);
   if(table.type==='crate'){if(held){state.message='手里已有食物，请先放下；食材箱可无限拿取。';return;}state.hasFood=makeFood(table.supply);const hint={rawRice:'放进高压锅会自动煮熟。',nori:'海苔无需加工，直接放到备菜台。',batter:'和生虾放到同一张备菜台，自动合成裹粉虾。'};state.message='拿到'+FOOD_NAMES[table.supply]+'。'+hint[table.supply];return;}
-  if(table.type==='trash'){if(held){state.message='已丢掉'+FOOD_NAMES[held.kind]+'。';state.hasFood=null;}else state.message='垃圾桶：手持不需要的食材时按 E 丢弃。';return;}
+  if(table.type==='trash'){if(held){sfx.play('bin');state.message='已丢掉'+FOOD_NAMES[held.kind]+'。';state.hasFood=null;}else state.message='垃圾桶：手持不需要的食材时按 E 丢弃。';return;}
   if(!held){
     if(!foods.length){state.message=table.type==='board'?'先把生三文鱼放上切菜台，再按住 F 切。':table.type==='cooker'?'先把生米放进高压锅，入锅后自动煮饭。':table.type==='fryer'?'把生虾和面糊放在备菜台上裹粉，再将裹粉虾放进油锅。':table.type==='oven'?'将生鱼、生虾或生鱿鱼按 E 放入，自动烘烤；一次一份，烤好后再取走。':table.type==='marinade'?'将生虾或生蟹按 E 放入，自动腌制；一次处理一份，腌好后再取走。':'空备菜台：刺身或炙烤虾＋熟饭＋海苔做对应寿司；生虾＋面糊做裹粉虾。';return;}
     const food=foods[foods.length-1];if(table.type==='cooker'&&food.kind==='rawRice'){state.message='正在煮饭，还需 '+Math.max(0,CONFIG.cookDuration-(food.cookProgress||0)).toFixed(1)+' 秒；可以离开去备菜。';return;}
@@ -90,7 +90,7 @@ function interactTable(table){
   if(table.type==='cooker'&&held.kind!=='rawRice'){state.message='高压锅目前只接受从米箱拿出的生米。';return;}
   if(table.type==='fryer'&&held.kind!=='coatedShrimp'){state.message='油锅只接受裹粉虾；先在备菜台把生虾和面糊合在一起。';return;}
   if(table.type==='marinade'&&!MARINADE_RECIPES[held.kind]){state.message='生腌区只接受生虾或生蟹，直接放入即可自动腌制。';return;}
-  if(table.type==='oven'&&!OVEN_RECIPES[held.kind]){state.message='烤箱只接受生鱼、生虾或生鱿鱼；请先取走已有成品再放下一份。';return;}
+  if(table.type==='oven'&&!OVEN_RECIPES[held.kind]){state.message='烧烤架只接受生鱼、生虾或生鱿鱼；请先取走已有成品再放下一份。';return;}
   if(table.type!=='counter'&&foods.length){state.message='这里已有食材，请先取走成品。';return;}
   if(table.type==='counter'&&foods.length){
     const kinds=[...foods.map(food=>food.kind),held.kind],valid=new Set(kinds).size===kinds.length&&PREP_RECIPES.some(recipe=>kinds.every(kind=>recipe.ingredients.includes(kind)));
@@ -101,7 +101,7 @@ function interactTable(table){
   else if(table.type==='cooker'){food.cookProgress=0;state.message='高压锅已自动开始煮饭，约 '+CONFIG.cookDuration+' 秒完成；可以离开，熟后回来 E 取饭。';}
   else if(table.type==='fryer'){food.fryProgress=0;state.message='油锅已自动开始炸虾，约 '+CONFIG.fryDuration+' 秒完成；可以离开，炸好后 E 取天妇罗。';}
   else if(table.type==='marinade'){food.marinateProgress=0;state.message=FOOD_NAMES[food.kind]+'已开始腌制，约 '+CONFIG.marinateDuration+' 秒完成；无需另加材料，可以离开，完成后回来 E 取走。';}
-  else if(table.type==='oven'){food.bakeProgress=0;state.message=FOOD_NAMES[food.kind]+'已放入烤箱，约 '+CONFIG.bakeDuration+' 秒自动烤好；可以离开，烤好后 E 取走。';}
+  else if(table.type==='oven'){food.bakeProgress=0;state.message=FOOD_NAMES[food.kind]+'已放入烧烤架，约 '+CONFIG.bakeDuration+' 秒自动烤好；可以离开，烤好后 E 取走。';}
   else if(!assemblePrep(table)){const kinds=tableFoods(table).map(item=>item.kind),recipes=PREP_RECIPES.filter(recipe=>kinds.every(kind=>recipe.ingredients.includes(kind)));state.message=recipes.length?'已放入'+FOOD_NAMES[food.kind]+'，还需：'+recipes.map(recipe=>recipe.ingredients.filter(kind=>!kinds.includes(kind)).map(kind=>FOOD_NAMES[kind]).join('＋')).join(' 或 ')+'。':'已暂存在'+table.label+'，空手 E 可取回。';}
 }
 function processStations(dt){
@@ -194,10 +194,10 @@ SEATS.forEach((seat,i)=>Object.assign(seat,{id:i,distance:projectOnBelt(seat.x,s
 let customerSequence=0,orderNodes=new Map(),uiNext=0;
 function canAct(){return state.phase==='playing'&&!state.suspended&&!state.paused&&state.faintLeft<=0;}
 
-var sfx=window.CatKitchenSfx.create({allowed:()=>typeof state!=='undefined'&&state?.phase==='playing'&&!state.paused&&!state.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.5},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28}}});
+var sfx=window.CatKitchenSfx.create({allowed:()=>typeof state!=='undefined'&&state?.phase==='playing'&&!state.paused&&!state.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.5},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'bin':{src:'assets/sfx/bin.mp3',from:0,to:null,volume:0.5},'neige':{src:'assets/sfx/neige.mp3',from:0,to:null,volume:0.4}}});
 function syncLevelSounds(){
  if(state.faintLeft<=0)sfx.stop('stun');
- const nearby=state.faintLeft<=0&&!state.hasFood?nearestTable():null,names=[];
+ const nearby=state.faintLeft<=0&&!state.hasFood?nearestTable():null,names=state.spinoLeft>0?['neige']:[];
  for(const table of tables){const food=tableFoods(table)[0];if(!food)continue;
   if(table.type==='board'&&food.kind==='salmon'&&state.keys.f&&nearby?.id===table.id)names.push('cut');
   if(table.type==='fryer'&&food.kind==='coatedShrimp')names.push('fryer');
@@ -249,7 +249,7 @@ function serveOnBelt(){
 function useSkill(key){
   if(!canAct())return false;
   if(key==='j'){
-    if(state.jCooldown>0)return false;state.jCooldown=RULES.skillCooldown;state.spinoLeft=RULES.spinoDuration;state.message='脊背龙！16 秒内移动 ×1.8、所有加工 ×2。';return true;
+    if(state.jCooldown>0)return false;state.jCooldown=RULES.skillCooldown;state.spinoLeft=RULES.spinoDuration;syncLevelSounds();state.message='脊背龙！16 秒内移动 ×1.8、所有加工 ×2。';return true;
   }
   if(key==='k'){
     if(state.kCooldown>0)return false;state.kCooldown=RULES.skillCooldown;state.kTextLeft=1.5;sfx.play('laowu');for(const c of state.customers)if(c.state==='waiting')c.stun=RULES.stopDuration;
@@ -538,7 +538,7 @@ function drawStations(){
     if(table.type==='board'){rounded(c,p.x-39,p.y-23,78,43,6,'#b9cb97','#7f9869',1.5);rounded(c,p.x-34,p.y-18,67,33,4,'#e0e8c8','#a5ba82',1);ellipse(c,p.x-30,p.y-9,2,3,'#7f9869');c.save();const cutting=food?.kind==='salmon'&&state.keys.f&&!state.hasFood&&state.faintLeft<=0&&nearestTable()?.id===table.id;c.translate(p.x+28,p.y-7+(cutting?Math.sin(state.elapsed*24)*3:0));c.rotate(.35);rounded(c,-3,-13,9,24,2,'#e6e6ce','#acae96',1);rounded(c,-3,9,7,13,2,'#a98051');c.restore();}
     if(table.type==='cooker'){const cooking=food?.kind==='rawRice',ready=food?.kind==='cookedRice';rounded(c,p.x-38,p.y-5,76,10,4,'#607f88');rounded(c,p.x-29,p.y-18,58,41,12,'#99bec8','#648c98',1.5);ellipse(c,p.x,p.y-14,29,9,'#d9e8e6');if(ready){ellipse(c,p.x,p.y-13,23,7,'#fff7dc');c.fillStyle='#ded7b8';for(let i=0;i<8;i++){c.beginPath();c.ellipse(p.x+Math.sin(i*2)*17,p.y-14+Math.cos(i*3)*3,2,1,0,0,Math.PI*2);c.fill();}}else{ellipse(c,p.x,p.y-18,31,9,'#e2edeb');rounded(c,p.x-10,p.y-29,20,10,4,'#657f89');ellipse(c,p.x+16,p.y-22,3,3,'#8da9b1');}rounded(c,p.x-7,p.y+7,14,7,3,cooking?'#d89b64':ready?'#f5df96':'#c3dce0');if(cooking){c.strokeStyle='#f9f2dc99';c.lineWidth=2;for(const x of[-10,10]){const offset=Math.sin(state.elapsed*3+x)*3;c.beginPath();c.moveTo(p.x+x,p.y-29);c.quadraticCurveTo(p.x+x+offset,p.y-37,p.x+x,p.y-43);c.stroke();}}}
     if(table.type==='fryer'){const frying=food?.kind==='coatedShrimp';rounded(c,p.x-36,p.y-21,72,45,9,'#e7c260','#b38c3c',1.5);rounded(c,p.x-29,p.y-17,58,29,6,'#927335');rounded(c,p.x-24,p.y-13,48,22,4,'#dbb353');c.strokeStyle='#f7e2a2';c.lineWidth=1;for(let x=-22;x<25;x+=7){c.beginPath();c.moveTo(p.x+x,p.y-12);c.lineTo(p.x+x,p.y+7);c.stroke();}rounded(c,p.x+18,p.y-25,25,6,3,'#9e7939');rounded(c,p.x-8,p.y+15,16,5,2,frying?'#da9d43':food?'#ffe1a0':'#efdb9a');if(food)drawFood(food,p.x,p.y-4,.55,false);if(frying){for(let i=0;i<6;i++){const x=p.x+Math.sin(i*2.5)*20,y=p.y-3+Math.cos(i*3)*7,r=1.5+(Math.sin(state.elapsed*5+i)+1)*.5;c.strokeStyle='#fae5a5a0';c.lineWidth=1;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.stroke();}}}
-    if(table.type==='oven'){const baking=!!(food&&OVEN_RECIPES[food.kind]);rounded(c,p.x-41,p.y-25,82,50,7,'#d98b79','#a85f53',1.5);rounded(c,p.x-35,p.y-18,51,34,4,baking?'#83503f':'#855e56');rounded(c,p.x-31,p.y-14,43,25,3,baking?'#ce9565':'#b17d6b');c.strokeStyle=baking?'#e1bb7b':'#e4b9a1';c.lineWidth=1;for(const y of[-7,0,7]){c.beginPath();c.moveTo(p.x-30,p.y+y);c.lineTo(p.x+11,p.y+y);c.stroke();}if(food)drawFood(food,p.x-10,p.y-3,.4,false);rounded(c,p.x-33,p.y-21,47,4,2,'#9c6356');for(const y of[-11,5]){ellipse(c,p.x+28,p.y+y,5,5,'#f8dfc4');ellipse(c,p.x+28,p.y+y,2,2,'#a87560');}ellipse(c,p.x+28,p.y+17,2.5,2.5,baking?'#d99b5b':food?'#e2ba83':'#ad7c6a');c.strokeStyle='#b67562';c.lineWidth=1;for(let x=-27;x<13;x+=7){c.beginPath();c.moveTo(p.x+x,p.y+21);c.lineTo(p.x+x+3,p.y+21);c.stroke();}}
+    if(table.type==='oven'){const baking=!!(food&&OVEN_RECIPES[food.kind]);window.paintKitchenGrill(c,p.x,p.y,baking,food?local=>drawFood(food,0,-4,.55,false,local):null,state.elapsed);}
     if(table.type==='marinade'){ellipse(c,p.x-4,p.y+5,32,18,'#b39bbd');ellipse(c,p.x-4,p.y,33,19,'#e9ddef');ellipse(c,p.x-4,p.y-2,28,14,'#b48c61');ellipse(c,p.x-4,p.y-3,24,11,'#cba774');rounded(c,p.x+29,p.y-16,10,24,3,'#b5a2c0','#8a7299',1);rounded(c,p.x+31,p.y-21,6,7,2,'#8c7199');rounded(c,p.x+28,p.y-6,12,7,2,'#eee1c1');if(food)drawFood(food,p.x-4,p.y-3,.5,false);else{ellipse(c,p.x-18,p.y-7,2,1,'#ead5a4');ellipse(c,p.x+8,p.y+2,2,1,'#9aa16f');}if(food&&MARINADE_RECIPES[food.kind]){c.strokeStyle='#f1dbaf66';c.lineWidth=1;const wobble=Math.sin(state.elapsed*1.4)*2;c.beginPath();c.ellipse(p.x-4,p.y-2,27+wobble,13,0,0,Math.PI*2);c.stroke();}}
     if(table.type==='trash'){rounded(c,p.x-22,p.y-19,44,42,7,'#97a298','#6c7b70',1.5);rounded(c,p.x-26,p.y-23,52,8,3,'#b6bfb6','#6c7b70',1);rounded(c,p.x-9,p.y-29,18,7,3,'#6c7b70');c.strokeStyle='#d3dbcc';c.lineWidth=2;for(const x of[-10,0,10]){c.beginPath();c.moveTo(p.x+x,p.y-10);c.lineTo(p.x+x,p.y+14);c.stroke();}}
   }

@@ -10,7 +10,7 @@
 <div class="skill-controls"><button id="skill-j">J 脊背龙</button><button id="skill-k">K 老吴</button><button id="skill-l">L 小猫哈气</button></div><div id="test-hud" class="test-hud" role="status"></div><div class="map-shell"><canvas id="map" width="1600" height="930" tabindex="0" aria-label="第三关街边地图：左侧一个 E 型大摊位和三辆竖向推车，中间双向马路，右侧三处暂扣位。使用 WASD 或方向键移动主厨，E 拿放示意餐盘。">浏览器需要支持 Canvas 才能显示地图。</canvas><div class="hud"><span class="chip"><i></i>E 型大摊位 · 推车在位封路</span><span class="chip patrol" id="patrol-state"><i></i>巡逻猫暂时离开</span></div></div>
 <div class="mobile-controls"><div class="dpad"><button data-dir="up" aria-label="向上">↑</button><button data-dir="left" aria-label="向左">←</button><button data-dir="down" aria-label="向下">↓</button><button data-dir="right" aria-label="向右">→</button></div><button id="touch-e">拿放 / 出餐 / 拖车</button><button id="touch-f">按住切菜</button></div>
 <section class="recipe-book" aria-labelledby="recipe-title">
-  <div class="recipe-heading"><div><span class="recipe-eyebrow">CAT KITCHEN / RECIPE BOOK</span><h2 id="recipe-title">料理手册 <span>16 道菜的制作指南</span></h2></div><span class="recipe-tip">材料放在同一张备菜台，自动合成</span></div>
+  <div class="recipe-heading"><div><span class="recipe-eyebrow">CAT KITCHEN / RECIPE BOOK</span><h2 id="recipe-title">料理手册 <span>16 道菜的制作指南</span></h2></div><span class="recipe-tip">材料放在同一备菜台或同一推车，自动合成</span></div>
   <section class="recipe-group snacks" aria-labelledby="snack-title">
     <h3 id="snack-title">街头小吃 <span>上方推车 · 4 道</span></h3>
     <div class="recipe-grid">
@@ -26,8 +26,8 @@
       <article><strong>三文鱼寿司</strong><p>生鱼切成刺身；刺身 ＋ 熟米饭 ＋ 海苔 → 同一备菜台合成。</p></article>
       <article><strong>天妇罗</strong><p>生虾 ＋ 面糊 → 同一备菜台合成裹粉虾 → 油锅炸约 2 秒。</p></article>
       <article><strong>三文鱼刺身</strong><p>生鱼 → 切菜台按住 F 切约 1.5 秒 → 取走出餐。</p></article>
-      <article><strong>烤鱼</strong><p>整条生鱼 → 烤箱自动烤约 3 秒 → 取走出餐。</p></article>
-      <article><strong>烤鱿鱼</strong><p>生鱿鱼 → 烤箱自动烤约 3 秒 → 取走出餐。</p></article>
+      <article><strong>烤鱼</strong><p>整条生鱼 → 烧烤架自动烤约 3 秒 → 取走出餐。</p></article>
+      <article><strong>烤鱿鱼</strong><p>生鱿鱼 → 烧烤架自动烤约 3 秒 → 取走出餐。</p></article>
       <article><strong>炙烤虾寿司</strong><p>生虾烤约 3 秒；炙烤虾 ＋ 熟米饭 ＋ 海苔 → 同一备菜台合成。</p></article>
     </div>
     <p class="recipe-note"><b>备料：</b>靠近水池对应的鱼、虾、鱿鱼格，空手按 E 直接取料。生米放高压锅，约 2.5 秒得到熟米饭；海苔和面糊从箱中直接取用。</p>
@@ -45,10 +45,10 @@
     <div class="tea-note"><strong>红茶与抹茶怎么煮？</strong><p>空手到接水处按 E 取水 → 到空壶按 E 加水 → 轻按 F 煮 3 秒 → 拿杯子按 E 接茶。</p><span>每壶供应 5 杯，用完后重新加水、煮茶；煮茶时可以离开。</span></div>
   </section>
   <details class="guide-details"><summary>操作与营业小贴士</summary><div class="guide-details-body">
-    <article><strong>拿放与加工</strong><p>WASD / 方向键移动，Shift 冲刺，E 拿放和出餐。按住 F 切菜，松手或离开保留进度；锅具与烤箱放入材料后自动加工。三块切菜板通用，两个油锅均可炸薯条与天妇罗。杯子可在配料站直接加料，也可在同一备菜台合并；不能重复或混入不相容配料。</p></article>
+    <article><strong>拿放与加工</strong><p>WASD / 方向键移动，Shift 冲刺，E 拿放和出餐。按住 F 切菜，松手或离开保留进度；锅具与烧烤架放入材料后自动加工。三块切菜板通用，两个油锅均可炸薯条与天妇罗。杯子可在配料站直接加料，也可在同一备菜台合并；不能重复或混入不相容配料。</p></article>
     <article><strong>投掷与技能</strong><p>轻按 Q 放下，长按 Q 蓄力投掷（最多 1.2 秒，60～330 像素）。蓄力时显示路径与落点，沿途适合的工作台会接住食材；绿色表示可接收，红色表示无法接收，金色表示落地。J：16 秒移速 ×1.8、加工 ×2，冷却 30 秒。K：冻结顾客与城管 5 秒，冷却 30 秒。L：取消预警或驱赶巡逻猫，冷却 40 秒。P 暂停，Esc 退出本局，切出窗口自动暂停。</p></article>
     <article><strong>点餐与计分</strong><p>每局 300 秒，首位顾客 5 秒后到达，后续每 4～8 秒来一位；同时最多 7 位，每队最多 3 位。对应队列有人点这道菜即可出餐，无需按队伍顺序；没人点的菜不能出餐。耐心 52.5 秒，超时扣 5 分；收到餐停止扣耐心，取餐 3 秒后离开，加 15 分。</p></article>
-    <article><strong>推车与巡逻</strong><p>每辆推车有四个暂存位。车上食物或顾客尚未带走的餐点被发现，会触发扣车并清空食物，顾客留在原位继续排队。空手过马路到暂扣位按 E 拿车，回到原车位自动归还后可继续出餐；注意车辆，撞车眩晕约 1.8 秒。</p></article>
+    <article><strong>推车与巡逻</strong><p>每辆推车有四个摆盘位，可暂存食物，也可合成汉堡、两种寿司、裹粉虾及杯装饮品；材料须放在同一辆推车。车上食物或顾客尚未带走的餐点被发现，会触发扣车并清空食物，顾客留在原位继续排队。空手过马路到暂扣位按 E 拿车，回到原车位自动归还后可继续出餐；注意车辆，撞车眩晕约 1.8 秒。</p></article>
   </div></details>
 </section>
 
@@ -77,4 +77,4 @@
 </div>
 
 <audio id="bgm" src="assets/bgm.m4a" preload="metadata" loop hidden></audio>
-<script src="sfx.js"></script><script src="game.js"></script></body></html>
+<script src="grill.js"></script><script src="sfx.js"></script><script src="game.js"></script></body></html>
