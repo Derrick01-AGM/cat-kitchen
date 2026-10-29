@@ -193,7 +193,18 @@ for(const y of[410,570]){SEATS.push({x:174,y});SEATS.push({x:1266,y});}
 SEATS.forEach((seat,i)=>Object.assign(seat,{id:i,distance:projectOnBelt(seat.x,seat.y).distance}));
 let customerSequence=0,orderNodes=new Map(),uiNext=0;
 function canAct(){return state.phase==='playing'&&!state.suspended&&!state.paused&&state.faintLeft<=0;}
-function reset(start=true){
+
+var sfx=window.CatKitchenSfx.create({allowed:()=>typeof state!=='undefined'&&state?.phase==='playing'&&!state.paused&&!state.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.5},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28}}});
+function syncLevelSounds(){
+ if(state.faintLeft<=0)sfx.stop('stun');
+ const nearby=state.faintLeft<=0&&!state.hasFood?nearestTable():null,names=[];
+ for(const table of tables){const food=tableFoods(table)[0];if(!food)continue;
+  if(table.type==='board'&&food.kind==='salmon'&&state.keys.f&&nearby?.id===table.id)names.push('cut');
+  if(table.type==='fryer'&&food.kind==='coatedShrimp')names.push('fryer');
+  if(table.type==='oven'&&OVEN_RECIPES[food.kind])names.push('oven');
+ }sfx.sync(names);
+}
+function reset(start=true){sfx.stopAll();
   state={raft:{...RAFT},cat:{...SPAWN,dirX:0,dirY:1},keys:{},phase:start?'playing':'ready',paused:false,suspended:!!document.hidden,elapsed:0,timeLeft:RULES.round,flowTime:0,flowPaused:false,cooldown:5,attack:null,hits:0,destroyed:0,faintLeft:0,stuns:0,hasFood:null,foods:[],nextId:1,particles:[],nets:createFishingNets(),beltTravel:0,customers:[],spawnLeft:1,score:0,served:0,missed:0,jCooldown:0,kCooldown:0,spinoLeft:0,kTextLeft:0,charging:false,charge:0,lureCooldown:0,distractedLeft:0,baits:[],decoy:null,message:'营业开始！中央两张网可随机捕捞：空手 E 下网，5 秒后回来逐只取。顾客仍会送海鲜上回转带。'};
   for(const dish of DISHES)state[dish.counter]=0;
   customerSequence=0;cachedUi={};uiNext=0;lastFrame=performance.now();
@@ -232,7 +243,7 @@ function serveOnBelt(){
   for(const food of [...state.foods]){
     if(food.place!=='belt'||!isFinishedDish(food.kind))continue;
     const customer=state.customers.find(c=>c.state==='waiting'&&c.order===food.kind&&Math.min(Math.abs(c.seat.distance-food.distance),BELT.length-Math.abs(c.seat.distance-food.distance))<48);
-    if(customer){customer.state='eating';customer.eatProgress=0;removeFood(food);state.message='#'+(customer.seat.id+1)+' 号顾客拿到了'+FOOD_NAMES[food.kind]+'！';}
+    if(customer){customer.state='eating';customer.eatProgress=0;sfx.play('eat',RULES.eatDuration);removeFood(food);state.message='#'+(customer.seat.id+1)+' 号顾客拿到了'+FOOD_NAMES[food.kind]+'！';}
   }
 }
 function useSkill(key){
@@ -241,7 +252,7 @@ function useSkill(key){
     if(state.jCooldown>0)return false;state.jCooldown=RULES.skillCooldown;state.spinoLeft=RULES.spinoDuration;state.message='脊背龙！16 秒内移动 ×1.8、所有加工 ×2。';return true;
   }
   if(key==='k'){
-    if(state.kCooldown>0)return false;state.kCooldown=RULES.skillCooldown;state.kTextLeft=1.5;for(const c of state.customers)if(c.state==='waiting')c.stun=RULES.stopDuration;
+    if(state.kCooldown>0)return false;state.kCooldown=RULES.skillCooldown;state.kTextLeft=1.5;sfx.play('laowu');for(const c of state.customers)if(c.state==='waiting')c.stun=RULES.stopDuration;
     state.message='老吴！当前等待中的顾客暂停耐心和送货计时 5 秒。';return true;
   }
   return false;
@@ -311,7 +322,7 @@ function impact(attack){
   const before=state.foods.length;state.foods=state.foods.filter(food=>food.place==='flying'||!inBlast(food.x,food.y,CONFIG.foodRadius,attack));let removed=before-state.foods.length;
   for(const net of state.nets)if(net.status==='ready'&&inBlast(net.x,net.y,CONFIG.foodRadius,attack)){removed+=net.catches.length;net.catches=[];net.status='idle';net.progress=0;}
   const hit=state.faintLeft<=0&&inBlast(state.cat.x,state.cat.y,CONFIG.catRadius,attack);
-  if(hit){state.faintLeft=CONFIG.faintDuration;state.stuns++;if(state.hasFood){state.hasFood=null;removed++;}state.charging=false;state.charge=0;}
+  if(hit){state.faintLeft=CONFIG.faintDuration;sfx.play('stun',CONFIG.faintDuration);state.stuns++;if(state.hasFood){state.hasFood=null;removed++;}state.charging=false;state.charge=0;}
   state.destroyed+=removed;
   for(let i=0;i<24;i++){const a=Math.random()*Math.PI*2,speed=45+Math.random()*145;state.particles.push({x:attack.x,y:attack.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:.65+Math.random()*.45});}
   state.message=hit?'主厨被吓晕了！原地 5 秒后苏醒，连续轻按空格加快恢复。':'鲨鱼涌起，清除了范围内 '+removed+' 份食物。';
@@ -322,7 +333,7 @@ function moveCat(dt){
   const speed=(k.shift?CONFIG.sprintSpeed:CONFIG.walkSpeed)*(state.spinoLeft>0?RULES.speedMult:1),nx=state.cat.x+dx*speed*dt,ny=state.cat.y+dy*speed*dt;
   if(supportedAt(nx,state.cat.y))state.cat.x=nx;if(supportedAt(state.cat.x,ny))state.cat.y=ny;
 }
-function finish(reason='ended'){
+function finish(reason='ended'){sfx.stopAll();
   if(state.phase!=='playing')return;state.phase=reason;state.keys={};state.charging=false;state.charge=0;state.paused=false;state.message=reason==='ended'?'营业结束！本局完成 '+state.served+' 单，得分 '+state.score+'。':'本局已退出，可以重新开始。';music.stop();syncUi(true);
 }
 function tick(dt){
@@ -346,9 +357,9 @@ function tick(dt){
   for(let i=state.particles.length-1;i>=0;i--){const p=state.particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)state.particles.splice(i,1);}
   if(state.timeLeft<=1e-8){state.timeLeft=0;finish();}
 }
-function step(seconds){if(state.suspended||state.paused||state.phase!=='playing')return;let left=Math.max(0,seconds);while(left>1e-9&&state.phase==='playing'){const dt=Math.min(left,1/120);tick(dt);left-=dt;}}
-function pauseGame(){if(state.phase!=='playing')return;state.paused=!state.paused;state.keys={};state.charging=false;state.charge=0;lastFrame=performance.now();music.sync();syncUi(true);canvas.focus();}
-function setSuspended(value){state.suspended=value;if(value){state.keys={};state.charging=false;state.charge=0;}lastFrame=performance.now();music.sync();syncUi(true);}
+function step(seconds){if(state.suspended||state.paused||state.phase!=='playing')return;let left=Math.max(0,seconds);while(left>1e-9&&state.phase==='playing'){const dt=Math.min(left,1/120);tick(dt);left-=dt;}syncLevelSounds();}
+function pauseGame(){if(state.phase!=='playing')return;state.paused=!state.paused;state.keys={};state.charging=false;state.charge=0;lastFrame=performance.now();music.sync();syncLevelSounds();syncUi(true);canvas.focus();}
+function setSuspended(value){state.suspended=value;if(value){state.keys={};state.charging=false;state.charge=0;}lastFrame=performance.now();music.sync();syncLevelSounds();syncUi(true);}
 document.addEventListener('keydown',event=>{
   const key=event.key.toLowerCase(),tag=event.target?.tagName||'';if(!KEYS.has(key)||['INPUT','TEXTAREA','SELECT'].includes(tag))return;if(tag==='BUTTON'&&key===' ')return;
   event.preventDefault();if(state.suspended)return;
@@ -359,7 +370,7 @@ document.addEventListener('keydown',event=>{
   if(state.faintLeft>0){if(key===' '){state.faintLeft=Math.max(0,state.faintLeft-RULES.spaceReduce);if(state.faintLeft<=1e-8)wakeChef();}return;}
   if(key==='e')interact();if(key==='q')beginThrow();if(key==='j'||key==='k')useSkill(key);
 });
-document.addEventListener('keyup',event=>{const key=event.key.toLowerCase();state.keys[key]=false;if(key==='q')releaseThrow();});
+document.addEventListener('keyup',event=>{const key=event.key.toLowerCase();state.keys[key]=false;if(key==='q')releaseThrow();syncLevelSounds();});
 window.addEventListener('blur',()=>setSuspended(true));window.addEventListener('focus',()=>{if(!document.hidden)setSuspended(false);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)setSuspended(true);else if(!document.hasFocus||document.hasFocus())setSuspended(false);});
 for(const id of['start-button','restart-button'])document.getElementById(id).addEventListener('click',()=>{reset();canvas.focus();});

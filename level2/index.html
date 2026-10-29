@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>浮木小厨房 · 第二关</title><meta name="description" content="小猫厨房第二关：海上浮木、八道料理、顾客送海鲜与鲨鱼眩晕。"><link rel="stylesheet" href="style.css"></head>
 <body><main class="shell">
-<header><div><p class="eyebrow">CAT KITCHEN / LEVEL 02</p><h1>浮木小厨房 <span>海上日料</span></h1></div><div class="actions"><button id="music-toggle" class="light" type="button" aria-pressed="true">音乐：开</button><button id="pause-button" class="light" type="button">暂停 · P</button><button id="restart-button" type="button">重新开始</button><button id="exit-button" class="light" type="button">退出本局 · Esc</button></div></header>
+<header><div><p class="eyebrow">CAT KITCHEN / LEVEL 02</p><h1>浮木小厨房 <span>海上日料</span></h1></div><div class="actions"><button id="music-toggle" class="light" type="button" aria-pressed="true">音乐：开</button><button id="sfx-toggle" type="button" class="light" aria-pressed="true">音效：开</button><button id="pause-button" class="light" type="button">暂停 · P</button><button id="restart-button" type="button">重新开始</button><button id="exit-button" class="light" type="button">退出本局 · Esc</button></div></header>
 <section class="status" aria-label="本局状态"><span>营业倒计时 <b id="time">180</b> 秒</span><span>分数 <b id="score">0</b></span><span>完成 <b id="served">0</b> 单</span><span>顾客 <b id="customerCount">0</b> / 5</span><span>手上 <b id="hand">空</b></span></section>
 <section class="order-board" aria-label="顾客订单"><div class="order-rod"></div><div id="orders"><p id="orders-empty">订单挂在这里 · 顾客入座后会送来对应海鲜</p></div></section>
 <div class="sea-frame"><canvas id="raft-game" width="1440" height="900" tabindex="0" aria-label="第二关。WASD 移动，Shift 冲刺，E 取放，按住 F 切鱼，Q 蓄力投掷，J 脊背龙，K 老吴。眩晕时连续轻按空格。"></canvas>
@@ -23,4 +23,4 @@
   </div><p class="recipe-note">海鲜来源：中央两张捕鱼网均可随机捕到鱼、虾、蟹、鱿鱼，空手 E 下网后可离开，约 5 秒后回来逐只取走；每网共 3–4 份，取完才能再次下网。顾客送货仍保留。熟米饭：米箱取生米，E 放高压锅自动煮约 2.5 秒；海苔和面糊从对应箱中直接拿取。加工中的食材和已做好的菜都可能被鲨鱼清除；顾客吃完一单加 15 分，耐心耗尽离开扣 5 分。松开 F 或离开切菜台会暂停并保留切菜进度。</p></section>
 
 <footer><div><kbd>W A S D</kbd> 移动 <kbd>Shift</kbd> 冲刺 <kbd>E</kbd> 拿放／接货 <kbd>按住 F</kbd> 切鱼 <kbd>Q</kbd> 轻按放下／长按投掷 <kbd>J</kbd> 脊背龙 <kbd>K</kbd> 老吴 <kbd>Space</kbd> 加快苏醒</div><p>四张备菜台均可合成配方，但材料必须放在同一张台上。烤箱、高压锅、油锅和生腌区放入材料就自动加工，可以离开。技能说明：脊背龙持续 16 秒，移动 ×1.8、加工 ×2；老吴让当前顾客暂停耐心和送货计时 5 秒。两个技能各冷却 30 秒。将食物蓄力扔进海里可引开鲨鱼 15 秒，诱饵冷却 60 秒。切出窗口自动暂停，回到窗口继续。</p></footer>
-</main><audio id="bgm" src="assets/bgm.m4a" loop preload="auto" hidden></audio><script src="game.js"></script></body></html>
+</main><audio id="bgm" src="assets/bgm.m4a" loop preload="auto" hidden></audio><script src="sfx.js"></script><script src="game.js"></script></body></html>

@@ -358,7 +358,12 @@ function projectOnBelt(x,y){
 function beltPos(progress){return map.belt.pointAt(progress*map.belt.length);}
 var seats=map.seats.map((s,i)=>({...s,id:i,progress:projectOnBelt(s.x,s.y)}));
 var loadProgress=projectOnBelt(map.belt.loadPoint.x,map.belt.loadPoint.y),g,lastTime=performance.now();
-function reset(start=true){
+
+var sfx=window.CatKitchenSfx.create({allowed:()=>typeof g!=='undefined'&&g&&g.running&&!g.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'stove':{src:'assets/sfx/stove.mp3',from:4,to:7,volume:0.32}}});
+function syncLevelSounds(){
+ sfx.sync(!usable()?[]:[...(g.cutting.active&&g.keys.f?['cut']:[]),...(g.cooking.active?['stove']:[]),...(g.frying.active?['fryer']:[])]);
+}
+function reset(start=true){sfx.stopAll();
   g={cat:{...map.spawn,speed:LEVEL.walkSpeed,sprint:LEVEL.sprintSpeed,r:20,dirX:0,dirY:-1},keys:{},hasItem:null,stations:stationDefs,
     surfaces:{prep1:[],prep2:[],prep3:[],prep4:[],prep5:[]},cuttingSurfaces:{cutting1:[]},stoveSurfaces:{stove1:[]},fryerSurface:[],
     cutting:{active:false,progress:0,duration:LEVEL.cutDuration},cooking:{active:false,progress:0,duration:LEVEL.cookDuration},frying:{active:false,progress:0,duration:LEVEL.fryDuration},
@@ -372,7 +377,7 @@ function reset(start=true){
   syncHud();syncOrders();syncBelt();if(start)music.restart();else{music.stop();document.getElementById('start-game').focus({preventScroll:true});}
 }
 function usable(){return g.running&&!g.suspended;}
-function cancelCutting(){g.cutting.active=false;}
+function cancelCutting(){g.cutting.active=false;syncLevelSounds();}
 // 进度属于当前留在切菜台上的食材，拿走或换料时清空，避免继承给新材料。
 function clearCutting(){g.cutting.active=false;g.cutting.progress=0;}
 // 仅接入同学的 K 技能效果，操作键改为 J；冷却从发动时起算。
@@ -516,7 +521,7 @@ function updateStep(dt){
     let receiver=null,nearest=Infinity;
     for(const c of g.customers){if(c.state!=='waiting'||c.order!==plate.type)continue;const ahead=(c.progress-old+1)%1;if(ahead<=travel+1e-9&&ahead/g.beltSpeed<c.patience&&ahead<nearest){nearest=ahead;receiver=c;}}
     plate.progress=(old+travel)%1;
-    if(receiver){receiver.state='eating';receiver.eatProgress=0;g.beltItems.splice(i,1);g.msg='顾客收到了'+ITEMS[receiver.order].name+'，正在享用。';}
+    if(receiver){receiver.state='eating';receiver.eatProgress=0;sfx.play('eat',2);g.beltItems.splice(i,1);g.msg='顾客收到了'+ITEMS[receiver.order].name+'，正在享用。';}
   }
   for(let i=g.customers.length-1;i>=0;i--){
     const c=g.customers[i];
@@ -533,10 +538,10 @@ function updateStep(dt){
 function update(dt){
   if(!usable())return;
   let remaining=Math.min(Math.max(dt,0),g.timeLeft);
-  while(remaining>1e-10&&g.running){let tick=Math.min(remaining,1/60);updateStep(tick);remaining-=tick;}
+  while(remaining>1e-10&&g.running){let tick=Math.min(remaining,1/60);updateStep(tick);remaining-=tick;}syncLevelSounds();
 }
 function syncBelt(){const slats=document.querySelector('.restaurant-map__slats');slats.style.animationDuration=240/(map.belt.length*g.beltSpeed)+'s';slats.style.animationPlayState=usable()?'running':'paused';}
-function endRound(reason){
+function endRound(reason){sfx.stopAll();
   if(!g.running)return;g.running=false;g.reason=reason;g.keys={};g.isCharging=false;g.throwCharge=0;cancelCutting();
   if(reason==='timeout')g.timeLeft=0;
   g.msg=reason==='quit'?'已退出本局，可点击「再开一局」重新开始。':'180 秒营业结束！';
@@ -553,7 +558,7 @@ document.addEventListener('keydown',e=>{
   if(!previous&&!e.repeat){if(key==='e')interact();if(key==='f')startProcess();if(key==='j')useJ();if(key==='q'&&g.hasItem){g.isCharging=true;g.throwCharge=0;}}
 });
 document.addEventListener('keyup',e=>{const key=e.key.toLowerCase();if(Object.hasOwn(g.keys,key))g.keys[key]=false;if(key==='f')cancelCutting();if(key==='q'&&g.isCharging)doThrow();});
-function suspendGame(){if(!g)return;g.keys={};g.isCharging=false;g.throwCharge=0;cancelCutting();g.suspended=true;syncBelt();music.sync();}
+function suspendGame(){if(!g)return;g.keys={};g.isCharging=false;g.throwCharge=0;cancelCutting();g.suspended=true;syncBelt();music.sync();sfx.stopAll();}
 function resumeGame(){if(!g||document.hidden)return;g.suspended=false;lastTime=performance.now();syncBelt();music.sync();}
 window.addEventListener('blur',suspendGame);
 window.addEventListener('focus',resumeGame);

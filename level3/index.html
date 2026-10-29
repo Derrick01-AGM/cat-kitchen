@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小猫厨房 · 第三关 · 猫猫风味街</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body><main>
+<header class="masthead"><div><div class="eyebrow">CAT KITCHEN / LEVEL 03</div><h1>猫猫风味街<span>300 秒营业挑战</span></h1><p class="intro">四道小吃 + 六道日料 + 六道甜品饮品；三辆推车独立接单；海鲜直接取料，六道甜品饮品与五杯容量茶壶已开放。</p></div><div class="actions"><button id="music-toggle" type="button" aria-pressed="true">音乐：开</button><button id="sfx-toggle" type="button" class="light" aria-pressed="true">音效：开</button><button id="pause" type="button">暂停 · P</button><button id="reset" type="button" class="primary">重新开始</button><button id="exit" type="button">退出本局 · Esc</button><button hidden id="patrol"></button><button hidden id="impound-0"></button><button hidden id="impound"></button><button hidden id="impound-2"></button></div></header>
+<div class="skill-controls"><button id="skill-j">J 脊背龙</button><button id="skill-k">K 老吴</button><button id="skill-l">L 小猫哈气</button></div><div id="test-hud" class="test-hud" role="status"></div><div class="map-shell"><canvas id="map" width="1600" height="930" tabindex="0" aria-label="第三关街边地图：左侧一个 E 型大摊位和三辆竖向推车，中间双向马路，右侧三处暂扣位。使用 WASD 或方向键移动主厨，E 拿放示意餐盘。">浏览器需要支持 Canvas 才能显示地图。</canvas><div class="hud"><span class="chip"><i></i>E 型大摊位 · 推车在位封路</span><span class="chip patrol" id="patrol-state"><i></i>巡逻猫暂时离开</span></div></div>
+<div class="mobile-controls"><div class="dpad"><button data-dir="up" aria-label="向上">↑</button><button data-dir="left" aria-label="向左">←</button><button data-dir="down" aria-label="向下">↓</button><button data-dir="right" aria-label="向右">→</button></div><button id="touch-e">拿放 / 出餐 / 拖车</button><button id="touch-f">按住切菜</button></div>
+<section class="recipe-book" aria-labelledby="recipe-title">
+  <div class="recipe-heading"><div><span class="recipe-eyebrow">CAT KITCHEN / RECIPE BOOK</span><h2 id="recipe-title">料理手册 <span>16 道菜的制作指南</span></h2></div><span class="recipe-tip">材料放在同一张备菜台，自动合成</span></div>
+  <section class="recipe-group snacks" aria-labelledby="snack-title">
+    <h3 id="snack-title">街头小吃 <span>上方推车 · 4 道</span></h3>
+    <div class="recipe-grid">
+      <article><strong>熟番茄</strong><p>番茄 → 切菜台切片 → 灶台煮熟。</p><small>按住 F 切菜；放入灶台后自动煮约 1.5 秒。</small></article>
+      <article><strong>面包</strong><p>面包箱取面包 → 直接出餐。</p><small>无需切片或加热。</small></article>
+      <article><strong>汉堡</strong><p>面包 ＋ 番茄片 ＋ 熟肉饼 → 同一备菜台合成。</p><small>生肉饼放灶台，自动煎约 1.5 秒。</small></article>
+      <article><strong>薯条</strong><p>土豆 → 切菜台切片 → 油锅炸熟。</p><small>放入油锅后自动炸约 1.5 秒。</small></article>
+    </div>
+  </section>
+  <section class="recipe-group japanese" aria-labelledby="japanese-title">
+    <h3 id="japanese-title">日料厨房 <span>中间推车 · 6 道</span></h3>
+    <div class="recipe-grid">
+      <article><strong>三文鱼寿司</strong><p>生鱼切成刺身；刺身 ＋ 熟米饭 ＋ 海苔 → 同一备菜台合成。</p></article>
+      <article><strong>天妇罗</strong><p>生虾 ＋ 面糊 → 同一备菜台合成裹粉虾 → 油锅炸约 2 秒。</p></article>
+      <article><strong>三文鱼刺身</strong><p>生鱼 → 切菜台按住 F 切约 1.5 秒 → 取走出餐。</p></article>
+      <article><strong>烤鱼</strong><p>整条生鱼 → 烤箱自动烤约 3 秒 → 取走出餐。</p></article>
+      <article><strong>烤鱿鱼</strong><p>生鱿鱼 → 烤箱自动烤约 3 秒 → 取走出餐。</p></article>
+      <article><strong>炙烤虾寿司</strong><p>生虾烤约 3 秒；炙烤虾 ＋ 熟米饭 ＋ 海苔 → 同一备菜台合成。</p></article>
+    </div>
+    <p class="recipe-note"><b>备料：</b>靠近水池对应的鱼、虾、鱿鱼格，空手按 E 直接取料。生米放高压锅，约 2.5 秒得到熟米饭；海苔和面糊从箱中直接取用。</p>
+  </section>
+  <section class="recipe-group desserts" aria-labelledby="dessert-title">
+    <h3 id="dessert-title">甜品与饮品 <span>下方推车 · 6 道</span></h3>
+    <div class="recipe-grid">
+      <article><strong>珍珠奶茶</strong><p>拿杯子 → 加牛奶 ＋ 煮好的红茶 ＋ 珍珠。</p><small>手持杯子到对应站点按 E；配料顺序可交换。</small></article>
+      <article><strong>芝士厚抹</strong><p>杯子 ＋ 牛奶 ＋ 煮好的抹茶 → 奶盖机打芝士奶盖。</p><small>E 放入奶盖机，约 1.5 秒后空手 E 取走。</small></article>
+      <article><strong>柠檬水</strong><p>柠檬切片 → 与杯子在备菜台合并 → 拿起后加水。</p><small>也可先给杯子加水，再与柠檬片合并。</small></article>
+      <article><strong>香草圣代</strong><p>空杯 → 冰淇淋机 → 香草圣代。</p><small>E 放入，约 1.5 秒后空手 E 取走。</small></article>
+      <article><strong>奥利奥圣代</strong><p>拿着香草圣代 → 到奥利奥碎处按 E 撒料。</p></article>
+      <article><strong>草莓圣代</strong><p>拿着香草圣代 → 到草莓酱处按 E 淋酱。</p></article>
+    </div>
+    <div class="tea-note"><strong>红茶与抹茶怎么煮？</strong><p>空手到接水处按 E 取水 → 到空壶按 E 加水 → 轻按 F 煮 3 秒 → 拿杯子按 E 接茶。</p><span>每壶供应 5 杯，用完后重新加水、煮茶；煮茶时可以离开。</span></div>
+  </section>
+  <details class="guide-details"><summary>操作与营业小贴士</summary><div class="guide-details-body">
+    <article><strong>拿放与加工</strong><p>WASD / 方向键移动，Shift 冲刺，E 拿放和出餐。按住 F 切菜，松手或离开保留进度；锅具与烤箱放入材料后自动加工。三块切菜板通用，两个油锅均可炸薯条与天妇罗。杯子可在配料站直接加料，也可在同一备菜台合并；不能重复或混入不相容配料。</p></article>
+    <article><strong>投掷与技能</strong><p>轻按 Q 放下，长按 Q 蓄力投掷（最多 1.2 秒，60～330 像素）。蓄力时显示路径与落点，沿途适合的工作台会接住食材；绿色表示可接收，红色表示无法接收，金色表示落地。J：16 秒移速 ×1.8、加工 ×2，冷却 30 秒。K：冻结顾客与城管 5 秒，冷却 30 秒。L：取消预警或驱赶巡逻猫，冷却 40 秒。P 暂停，Esc 退出本局，切出窗口自动暂停。</p></article>
+    <article><strong>点餐与计分</strong><p>每局 300 秒，首位顾客 5 秒后到达，后续每 4～8 秒来一位；同时最多 7 位，每队最多 3 位。对应队列有人点这道菜即可出餐，无需按队伍顺序；没人点的菜不能出餐。耐心 52.5 秒，超时扣 5 分；收到餐停止扣耐心，取餐 3 秒后离开，加 15 分。</p></article>
+    <article><strong>推车与巡逻</strong><p>每辆推车有四个暂存位。车上食物或顾客尚未带走的餐点被发现，会触发扣车并清空食物，顾客留在原位继续排队。空手过马路到暂扣位按 E 拿车，回到原车位自动归还后可继续出餐；注意车辆，撞车眩晕约 1.8 秒。</p></article>
+  </div></details>
+</section>
+
+<div id="status" class="status-line" role="status" aria-live="polite">三辆推车全部在位，通往马路的路暂时封闭。</div><footer>小猫厨房 · 第三关 · 猫猫风味街 / 沿用第一关与第二关食材、工具素材</footer>
+</main><div id="game-dialog" class="game-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+  <section class="dialog-card">
+    <span class="dialog-eyebrow">CAT KITCHEN / CHAPTER 03</span>
+    <h2 id="dialog-title">猫猫风味街，开张！</h2>
+    <p id="dialog-description" class="dialog-description"></p>
+    <div id="dialog-intro">
+      <div class="dialog-stats" aria-label="关卡信息">
+        <div><strong>300 <small>秒</small></strong><span>本局营业时间</span></div>
+        <div><strong>16 <small>道</small></strong><span>美味料理</span></div>
+        <div><strong>7 <small>位</small></strong><span>同时顾客上限</span></div>
+      </div>
+      <div class="dialog-features">
+        <article><span class="feature-number">01</span><div><h3>三辆推车，各有拿手菜</h3><p>上方出小吃，中间出日料，下方出甜品饮品。每队最多 3 位，有人点这道菜就能出餐，无需按排队顺序。</p></div></article>
+        <article><span class="feature-number">02</span><div><h3>巡逻来了，留意车上的食物</h3><p>推车上暂存的食物、顾客尚未带走的餐点，都可能被巡逻猫发现，导致推车被扣、食物清空。</p></div></article>
+        <article><span class="feature-number">03</span><div><h3>过街取车，小心来往车辆</h3><p>空手到对面暂扣位按 E 拖车，回到原车位自动归还。被车撞到会短暂眩晕，记得看好路再走。</p></div></article>
+      </div>
+      <p class="dialog-score-note">顾客耐心 52.5 秒 · 超时离开 −5 分 · 取餐离开 ＋15 分</p>
+      <p class="dialog-controls">WASD 移动 · Shift 冲刺 · E 拿放 / 拖车 · 按住 F 切菜<br>Q 放下 / 投掷 · J / K / L 技能 · P 暂停 · Esc 退出</p>
+    </div>
+    <button id="start-game" type="button" class="primary">开始营业</button>
+  </section>
+</div>
+
+<audio id="bgm" src="assets/bgm.m4a" preload="metadata" loop hidden></audio>
+<script src="sfx.js"></script><script src="game.js"></script></body></html>
