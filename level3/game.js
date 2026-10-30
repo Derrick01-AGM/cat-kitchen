@@ -1,3 +1,69 @@
+// 技能造型由游戏计时驱动；不另设计时器，暂停、重开与技能结束同步恢复。
+window.paintChefSkill=function(c,x,y,pose){
+ const mode=pose.hiss>0?'hiss':pose.roar>0?'roar':pose.boost>0?'spino':null;
+ if(!mode)return false;
+ c.save();c.translate(x,y);const size=pose.scale||1;c.scale(size,size);
+ c.lineJoin='round';c.lineCap='round';c.lineWidth=1.7;c.strokeStyle='#aa7850';
+ const fur='#eac08a',cream='#fff0d5',ink='#62452f';
+ function oval(x,y,rx,ry,color,edge=true){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=color;c.fill();if(edge)c.stroke();}
+ function poly(points,color){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fillStyle=color;c.fill();c.stroke();}
+ function line(points,color=ink,width=1.7){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.strokeStyle=color;c.lineWidth=width;c.stroke();c.strokeStyle='#aa7850';c.lineWidth=1.7;}
+ function hat(x,y){oval(x-13,y-6,10,9,'#fffdf5');oval(x,y-10,13,11,'#fffdf5');oval(x+13,y-6,10,9,'#fffdf5');poly([[x-20,y-6],[x+20,y-6],[x+18,y+6],[x-18,y+6]],'#fff9ec');}
+ if(mode==='spino'){
+  // 参考照片的侧身圆弧拱背、四足站姿与回头看人的脸，毛尖只做少量点缀。
+  c.save();c.translate(-29,-1);c.rotate(-.24);oval(-6,-2,6,23,fur);c.restore();
+  oval(-17,12,6,15,fur);oval(13,11,6,16,fur);
+  c.beginPath();c.moveTo(-32,8);c.bezierCurveTo(-39,-10,-32,-51,-11,-56);c.bezierCurveTo(13,-64,25,-40,28,-10);c.quadraticCurveTo(23,9,4,10);c.quadraticCurveTo(-16,1,-32,8);c.fillStyle=fur;c.fill();c.stroke();
+  oval(-26,17,7,15,fur);oval(24,16,6,15,fur);oval(-27,30,9,4,cream);oval(25,30,9,4,cream);
+  for(let i=0;i<4;i++)line([[-24+i*10,-43],[-27+i*10,-29],[-23+i*10,-17]],'#bb8752',2.5);
+  poly([[-15,-55],[-11,-60],[-7,-55]],fur);poly([[-4,-57],[0,-62],[4,-55]],fur);
+  poly([[7,-29],[7,-48],[19,-39],[32,-47],[34,-28]],fur);
+  oval(21,-20,22,21,fur);oval(21,-11,15,10,cream,false);
+  hat(20,-49);
+  oval(13,-23,5,6,'#fff5d8',false);oval(29,-23,5,6,'#fff5d8',false);
+  oval(14,-22,2.8,4,'#788653',false);oval(28,-22,2.8,4,'#788653',false);
+  oval(14,-22,1.3,3.5,ink,false);oval(28,-22,1.3,3.5,ink,false);
+  poly([[18,-13],[24,-13],[21,-9]],'#cc8e80');line([[21,-8],[17,-5],[13,-6]]);line([[21,-8],[25,-5],[29,-6]]);
+  line([[6,-12],[-4,-14]],'#b19372',1);line([[36,-12],[46,-14]],'#b19372',1);
+ }else{
+  // 保留主厨的奶油色身体与白帽，变换头部表情和姿态。
+  oval(0,6,23,23,fur);oval(0,10,16,17,cream,false);oval(-14,25,10,6,cream);oval(14,25,10,6,cream);
+  const progress=mode==='hiss'?Math.max(0,Math.min(1,1-pose.hiss/.65)):0;
+  const pop=mode==='hiss'?1+.65*(progress<.18?progress/.18:(1-progress)/.82):1;
+  c.save();c.translate(0,mode==='roar'?-27:-22);c.scale(pop,pop);
+  if(mode==='roar')c.rotate(-.1+Math.sin((pose.time||0)*22)*.025);
+  poly([[-23,-7],[-27,-29],[-10,-19],[10,-19],[27,-29],[23,-7]],fur);
+  poly([[-21,-12],[-23,-23],[-12,-17]],'#e5a59a');poly([[21,-12],[23,-23],[12,-17]],'#e5a59a');
+  oval(0,0,29,26,fur);oval(-12,10,14,13,cream,false);oval(12,10,14,13,cream,false);
+  for(const sign of [-1,1]){line([[sign*8,-18],[sign*10,-11]],'#b7814e',3);line([[sign*17,-16],[sign*19,-9]],'#b7814e',2);}
+  if(mode==='roar'){
+   line([[-19,-7],[-13,-11],[-7,-7]],ink,2.5);line([[7,-7],[13,-11],[19,-7]],ink,2.5);
+   oval(0,10,10,16,'#633b32');oval(0,20,6,5,'#db8e88',false);
+   poly([[-7,0],[-3,1],[-5,7]],'#fff9e7');poly([[7,0],[3,1],[5,7]],'#fff9e7');
+  }else{
+   // 参考耄耋脸：压低的眼皮、宽脸、张开的嘴和两颗獠牙。
+   line([[-22,-10],[-10,-6],[-5,-9]],ink,3);line([[5,-9],[10,-6],[22,-10]],ink,3);
+   oval(-13,-5,5,2.8,'#78724b',false);oval(13,-5,5,2.8,'#78724b',false);oval(-13,-5,1.2,3,ink,false);oval(13,-5,1.2,3,ink,false);
+   oval(0,14,15,17,'#67392d');oval(0,24,9,6,'#d68a84',false);
+   poly([[-12,2],[-5,4],[-9,15]],'#fffae8');poly([[12,2],[5,4],[9,15]],'#fffae8');
+   poly([[-8,27],[-4,22],[-2,28]],'#fff5df');poly([[8,27],[4,22],[2,28]],'#fff5df');
+  }
+  poly([[-5,0],[5,0],[0,5]],'#c78c7d');
+  for(const sign of [-1,1]){line([[sign*17,6],[sign*38,2]],'#faf0db',1.2);line([[sign*19,10],[sign*40,12]],'#faf0db',1.2);}
+  hat(0,-29);c.restore();
+  if(mode==='roar')for(const sign of [-1,1]){c.strokeStyle='#c99b60';c.lineWidth=2;c.beginPath();c.arc(sign*18,-48,18+(Math.sin((pose.time||0)*13)+1)*4,sign<0?2.7:4.8,sign<0?4.4:6.6);c.stroke();}
+ }
+ c.restore();return true;
+};
+
+window.paintSkillCaption=function(c,word,x,y,left,duration,color){
+ const t=Math.max(0,Math.min(1,1-left/duration)),pop=1-Math.pow(1-Math.min(1,t/.2),3);
+ const fontSize=(word==='哈'?46:40)+(word==='哈'?108:92)*pop;
+ c.save();c.translate(x,Math.max(95,y));c.rotate(Math.sin(t*21)*.035*(1-t));c.globalAlpha=t<.65?1:Math.max(0,(1-t)/.35);
+ c.font='900 '+fontSize+'px "Microsoft YaHei",sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+ c.shadowColor='#593b3b55';c.shadowBlur=12;c.shadowOffsetY=5;c.lineWidth=fontSize*.12;c.strokeStyle='#fff8e4';c.strokeText(word,0,0);c.shadowBlur=0;c.shadowOffsetY=0;c.fillStyle=color;c.fillText(word,0,0);c.restore();
+};
+
 
 window.TomatoArt = (() => {
   const tau = Math.PI * 2;
@@ -383,7 +449,7 @@ const PATROL_SPEED=94*1.2;
 const PATROL_POINTS=[{x:1550,y:300},{x:1550,y:378},{x:1260,y:378},{x:973,y:378},{x:973,y:260},{x:973,y:512},{x:973,y:760},{x:973,y:633},{x:1260,y:633},{x:1550,y:633},{x:1550,y:817},{x:1550,y:122}];
 function car(c,v){c.save();c.translate(v.x,v.y);if(v.dir<0)c.rotate(Math.PI);shadow(c,-41,-72,82,144,20);for(const x of [-43,35]){rr(c,x,-46,9,30,4,'#4c5553');rr(c,x,27,9,30,4,'#4c5553');}rr(c,-40,-72,80,144,21,v.color,'#53625e',2.5);rr(c,-33,-63,66,126,16,'rgba(255,255,255,.13)');rr(c,-30,-38,60,78,14,'#5c7377','#54666a');rr(c,-25,-33,50,21,8,'#c1d4cf');rr(c,-25,20,50,14,5,'#a9c2c0');rr(c,-25,-8,50,26,6,v.color);line(c,-38,-6,-38,20,'#c4c5ac',2);line(c,38,-6,38,20,'#c4c5ac',2);for(const x of [-25,17]){rr(c,x,55,13,8,3,'#ffefb7');rr(c,x,-62,12,6,2,'#d77868');}line(c,-23,45,23,45,'rgba(255,255,255,.23)',2);c.restore();}
 function officer(c,p){c.save();c.translate(p.x,p.y);const bob=reduced?0:Math.sin(state.time*8)*1.5;el(c,1,24,22,7,'rgba(83,86,60,.17)');c.translate(0,bob);path(c,[[-18,-16],[-22,-36],[-6,-25],[8,-25],[22,-36],[18,-12]],'#a8b2a2','#768376',2);el(c,0,-9,24,22,'#b8c1af','#7d8d7e');path(c,[[-18,5],[-20,25],[-10,29],[10,29],[20,24],[17,5]],'#718995','#4c6674');el(c,-10,29,10,5,'#607a85');el(c,10,29,10,5,'#607a85');el(c,-9,-11,2.7,3.5,'#3e5354');el(c,9,-11,2.7,3.5,'#3e5354');el(c,0,-2,3,2,'#c18e80');line(c,-23,-4,-14,-2,'#73897a',1);line(c,14,-2,23,-4,'#73897a',1);rr(c,-23,-35,46,16,7,'#587582','#3f5d6b');el(c,0,-19,27,6,'#466570');path(c,[[0,-34],[6,-30],[4,-24],[0,-21],[-4,-24],[-6,-30]],'#ebc76b');rr(c,-19,18,38,5,2,'#4f6973');el(c,7,12,4,5,'#e9c67b');c.restore();}
-function paintChefSprites(c){const p=state.cat,bob=p.moving&&!reduced?Math.sin(state.time*13)*2:0;el(c,p.x,p.y+19,23,8,'rgba(108,80,45,.18)');c.save();c.translate(p.x,p.y+bob);if(chefImage.complete&&chefImage.width)c.drawImage(chefImage,-44,-61,88,88);else{el(c,0,-12,24,25,'#e9c58e');rr(c,-21,-44,42,16,6,'#fffbed');el(c,-8,-14,3,4,'#534d43');el(c,8,-14,3,4,'#534d43');}if(p.held){food(c,p.held,0,14,.66);el(c,-16,14,6,4,'#fff2d8','#c4ac85',1);el(c,16,14,6,4,'#fff2d8','#c4ac85',1);}c.restore();
+function paintChefSprites(c){const p=state.cat,bob=p.moving&&!reduced?Math.sin(state.time*13)*2:0;el(c,p.x,p.y+19,23,8,'rgba(108,80,45,.18)');c.save();c.translate(p.x,p.y+bob);if(window.paintChefSkill(c,0,0,{boost:state.level?.boost,roar:state.level?.burst,hiss:state.level?.hiss,time:state.time})){}else if(chefImage.complete&&chefImage.width)c.drawImage(chefImage,-44,-61,88,88);else{el(c,0,-12,24,25,'#e9c58e');rr(c,-21,-44,42,16,6,'#fffbed');el(c,-8,-14,3,4,'#534d43');el(c,8,-14,3,4,'#534d43');}if(p.held){food(c,p.held,0,14,.66);el(c,-16,14,6,4,'#fff2d8','#c4ac85',1);el(c,16,14,6,4,'#fff2d8','#c4ac85',1);}c.restore();
  // 朝向脚边的小箭头，避免将正面猫图整体翻转造成持物错位。
  path(c,[[p.x+p.face*30,p.y+17],[p.x+p.face*37,p.y+21],[p.x+p.face*30,p.y+25]],'#aa956e');}
 function nearestHint(){let best=null;for(const s of state.surfaces)for(let i=0;i<s.slots.length;i++){let point=slotPosition(s,i),dist=Math.hypot(point.x-state.cat.x,point.y-state.cat.y),valid=state.cat.held?!s.slots[i]:!!s.slots[i],score=dist+((point.x-state.cat.x)*state.cat.face < -8?90:0);if(dist<(s.type==='cart'?150:119)&&valid&&(!best||score<best.score))best={point,dist,score};}return best;}
@@ -568,7 +634,7 @@ function interactDessertStation(st){
  }
  if(st.type==='topping'){
   if(p.held!=='vanillaSundae'){announce('拿着香草圣代到这里按 E，添加'+(st.id==='oreoTopping'?'奥利奥碎':'草莓酱')+'。');return true;}
-  p.held=st.item;announce(ITEMS[p.held].name+'做好了！送到最下方甜品出餐口。');return true;
+  p.held=st.item;announce(ITEMS[p.held].name+'做好了！送到最下方甜品推车摆盘格。');return true;
  }
  if(st.type==='foamMachine'||st.type==='iceMachine'){
   if(st.layers.length){if(st.process.active){announce(st.label+'正在制作，完成后空手 E 取走。');return true;}
@@ -874,14 +940,21 @@ function seizeCart(row){
  state.impounded=true;announce((row+1)+' 号推车被扣留，车上与顾客尚未带走的食物已清空！顾客在原地继续等候。');return true;
 }
 function portPosition(row=0){return{x:CART_HOME_X+28,y:CART_HOME_Y[row]+34};}
-function tryServe(group=nearestPort()){
- if(!canAct()||!group||!state.cat.held)return false;
- const t=state.carts[group.row],kind=state.cat.held;
- if(t.impounded||t.carried||Math.abs(t.x-CART_HOME_X)>1){announce('这辆推车已暂扣，请先空手到对面按 E 拿车，再拖回原位。');return true;}
- const customer=group.queue.find(q=>!q.parcel&&q.order===kind&&q.patience>0);
- if(!group.orders.includes(kind)||!customer){announce(group.name+'队列中暂时没有顾客等待'+ITEMS[kind].name+'，请先暂存这道菜。');return true;}
- customer.parcel=kind;customer.eating=3;sfx.play('eat');state.cat.held=null;
- announce('已把'+ITEMS[kind].name+'交给点餐顾客，3 秒后带走并结算；请留意城管。');syncTestHud();return true;
+// 取消独立出餐口，顾客只从自己排队的推车格子领取成品。
+function nearestPort(){return null;}
+function tryServe(){return false;}
+function collectCartOrders(){
+ for(const group of servingGroups()){
+  const cart=state.carts[group.row],surface=cartSurface(group.row);
+  if(cart.impounded||cart.carried||Math.abs(cart.x-CART_HOME_X)>1)continue;
+  for(let index=0;index<surface.slots.length;index++){
+   const layers=cartSlotLayers(surface,index);if(layers.length!==1)continue;
+   const kind=layers[0];if(!group.orders.includes(kind))continue;
+   const customer=group.queue.find(q=>!q.parcel&&q.order===kind&&q.patience>0);if(!customer)continue;
+   setCartSlot(surface,index,[]);customer.parcel=kind;customer.eating=3;sfx.play('eat');
+   announce(ITEMS[kind].name+'已被点餐顾客拿走，3 秒后离开并结算；请留意城管。');
+  }
+ }
 }
 function testInteract(){
  if(!canAct())return;const p=state.cat,l=state.level;
@@ -928,6 +1001,7 @@ function updateCustomerArrivals(dt){
  if(state.level.customerSpawn<=0){spawnLevelCustomer();state.level.customerSpawn=4+Math.random()*4;}
 }
 function updateCustomers(dt){
+ collectCartOrders();
  for(const group of servingGroups())for(let i=group.queue.length-1;i>=0;i--){
   const q=group.queue[i];
   if(q.parcel){q.eating-=dt;if(q.eating<=0){state.test.score+=15;state.test.served++;announce(ITEMS[q.parcel].name+'已被顾客带走，+15 分！');group.queue.splice(i,1);}}
@@ -1071,9 +1145,8 @@ function syncTestHud(){
 function drawKitchenTest(){
  syncKitchenArt();drawSeafoodPool();for(const st of state.test.stations){if(st.type==='pool')continue;if(st.type==='cutting')drawUnifiedCuttingStation(st);else if(st.style==='dessert')drawDessertStation(st);else if(st.style==='level2')drawJapaneseStation(st);else drawStation(st);}
  for(const group of servingGroups()){
-  const port=portPosition(group.row),absent=state.carts[group.row].impounded;
-  if(!absent){rr(ctx,port.x-23,port.y-15,46,30,7,'#fff9df','#91a477',2);el(ctx,port.x,port.y-1,13,7,'#fffefa','#c2af89',1.5);text(ctx,group.name+'出餐 · E',port.x,port.y-25,12,'#5d7958',800);}
-  else {text(ctx,'推车已暂扣',CART_HOME_X+64,CART_HOME_Y[group.row]+105,13,'#ae7964',800);text(ctx,'跨过马路 · E 取车',CART_HOME_X+64,CART_HOME_Y[group.row]+127,11,'#8e886c');}
+  const absent=state.carts[group.row].impounded;
+  if(absent){text(ctx,'推车已暂扣',CART_HOME_X+64,CART_HOME_Y[group.row]+105,13,'#ae7964',800);text(ctx,'跨过马路 · E 取车',CART_HOME_X+64,CART_HOME_Y[group.row]+127,11,'#8e886c');}
   group.queue.forEach((q,i)=>{const{x,y}=queuePoint(group.row,i);el(ctx,x,y+19,19,6,'rgba(90,85,65,.13)');ctx.save();ctx.translate(x-24,y-24);drawCatFace(ctx,q.breed,q.parcel?'eating':'waiting');ctx.restore();rr(ctx,x-22,y-64,44,33,8,'#fff9e9','#cbb78e',1);drawFood(ctx,x,y-48,q.order,.48);
    if(!q.parcel){const ratio=Math.max(0,q.patience/q.maxP);rr(ctx,x-19,y-35,38,3,1.5,'#dacbb0');if(ratio>0)rr(ctx,x-19,y-35,38*ratio,3,1.5,state.level.freeze>0?'#89aab3':ratio>.5?'#90a974':ratio>.25?'#d7aa5d':'#c97b68');}
    if(q.parcel){drawFood(ctx,x+25,y+12,q.parcel,.3);rr(ctx,x-19,y-35,38,3,1.5,'#dacbb0');rr(ctx,x-19,y-35,38*Math.max(0,q.eating/3),3,1.5,'#8fa77a');}
@@ -1105,8 +1178,8 @@ function drawLevelEffects(){
  if(l.carry>=0){const t=state.carts[l.carry];c.save();c.translate(p.stun>0?t.x+6:p.x+30,p.stun>0?t.y+120:p.y+20);c.scale(.42,.42);c.translate(-t.x-66,-t.y-112);cart(c,t);const s=cartSurface(t.row);s.slots.forEach((kind,i)=>{if(kind){const pos=slotPosition(s,i);drawCartSlot(c,s,i,pos.x,pos.y,.75);}});c.restore();text(c,'拖车中 · 原位自动归还',p.x,p.y-82,12,'#937956');}
  if(l.charging&&p.held)drawThrowPreview();
  if(l.boost>0){for(let i=0;i<2;i++){const y=p.y-78-((state.time*30+i*22)%48);c.save();c.globalAlpha=1-((state.time*30+i*22)%48)/48;text(c,'内阁',p.x+(i?12:-12),y,16,'#bc805e',800);c.restore();}}
- if(l.burst>0){c.save();c.translate(p.x,p.y-85);const scale=1+(1.5-l.burst)*.5;c.scale(scale,scale);text(c,'老吴！',0,0,27,'#5d91a2',800);c.restore();}
- if(l.hiss>0){c.save();c.strokeStyle='#c38f6d';c.lineWidth=2.5;c.beginPath();c.arc(p.x,p.y-12,40+(1-l.hiss/.65)*90,-.8,2.5);c.stroke();text(c,'哈——！',p.x,p.y-97,19,'#a16f54');c.restore();}
+ if(l.burst>0)window.paintSkillCaption(c,'老吴',p.x,p.y-112,l.burst,1.5,'#587f9a');
+ if(l.hiss>0){c.save();c.strokeStyle='#c38f6d';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y-12,40+(1-l.hiss/.65)*110,-.8,2.5);c.stroke();c.restore();window.paintSkillCaption(c,'哈',p.x,p.y-112,l.hiss,.65,'#bd6b48');}
  if(l.freeze>0&&state.patrol.active)text(c,'冻结 '+l.freeze.toFixed(1)+'s',state.patrol.x,state.patrol.y+48,12,'#6796a5');
  if(p.stun>0){
   for(let i=0;i<3;i++){const a=state.time*5+i*Math.PI*2/3;effectStar(c,p.x+Math.cos(a)*30,p.y-65+Math.sin(a)*9,8,i%2?'#d1a776':'#e0bd62');}

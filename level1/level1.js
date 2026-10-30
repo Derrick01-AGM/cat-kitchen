@@ -1,3 +1,69 @@
+// 技能造型由游戏计时驱动；不另设计时器，暂停、重开与技能结束同步恢复。
+window.paintChefSkill=function(c,x,y,pose){
+ const mode=pose.hiss>0?'hiss':pose.roar>0?'roar':pose.boost>0?'spino':null;
+ if(!mode)return false;
+ c.save();c.translate(x,y);const size=pose.scale||1;c.scale(size,size);
+ c.lineJoin='round';c.lineCap='round';c.lineWidth=1.7;c.strokeStyle='#aa7850';
+ const fur='#eac08a',cream='#fff0d5',ink='#62452f';
+ function oval(x,y,rx,ry,color,edge=true){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=color;c.fill();if(edge)c.stroke();}
+ function poly(points,color){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fillStyle=color;c.fill();c.stroke();}
+ function line(points,color=ink,width=1.7){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.strokeStyle=color;c.lineWidth=width;c.stroke();c.strokeStyle='#aa7850';c.lineWidth=1.7;}
+ function hat(x,y){oval(x-13,y-6,10,9,'#fffdf5');oval(x,y-10,13,11,'#fffdf5');oval(x+13,y-6,10,9,'#fffdf5');poly([[x-20,y-6],[x+20,y-6],[x+18,y+6],[x-18,y+6]],'#fff9ec');}
+ if(mode==='spino'){
+  // 参考照片的侧身圆弧拱背、四足站姿与回头看人的脸，毛尖只做少量点缀。
+  c.save();c.translate(-29,-1);c.rotate(-.24);oval(-6,-2,6,23,fur);c.restore();
+  oval(-17,12,6,15,fur);oval(13,11,6,16,fur);
+  c.beginPath();c.moveTo(-32,8);c.bezierCurveTo(-39,-10,-32,-51,-11,-56);c.bezierCurveTo(13,-64,25,-40,28,-10);c.quadraticCurveTo(23,9,4,10);c.quadraticCurveTo(-16,1,-32,8);c.fillStyle=fur;c.fill();c.stroke();
+  oval(-26,17,7,15,fur);oval(24,16,6,15,fur);oval(-27,30,9,4,cream);oval(25,30,9,4,cream);
+  for(let i=0;i<4;i++)line([[-24+i*10,-43],[-27+i*10,-29],[-23+i*10,-17]],'#bb8752',2.5);
+  poly([[-15,-55],[-11,-60],[-7,-55]],fur);poly([[-4,-57],[0,-62],[4,-55]],fur);
+  poly([[7,-29],[7,-48],[19,-39],[32,-47],[34,-28]],fur);
+  oval(21,-20,22,21,fur);oval(21,-11,15,10,cream,false);
+  hat(20,-49);
+  oval(13,-23,5,6,'#fff5d8',false);oval(29,-23,5,6,'#fff5d8',false);
+  oval(14,-22,2.8,4,'#788653',false);oval(28,-22,2.8,4,'#788653',false);
+  oval(14,-22,1.3,3.5,ink,false);oval(28,-22,1.3,3.5,ink,false);
+  poly([[18,-13],[24,-13],[21,-9]],'#cc8e80');line([[21,-8],[17,-5],[13,-6]]);line([[21,-8],[25,-5],[29,-6]]);
+  line([[6,-12],[-4,-14]],'#b19372',1);line([[36,-12],[46,-14]],'#b19372',1);
+ }else{
+  // 保留主厨的奶油色身体与白帽，变换头部表情和姿态。
+  oval(0,6,23,23,fur);oval(0,10,16,17,cream,false);oval(-14,25,10,6,cream);oval(14,25,10,6,cream);
+  const progress=mode==='hiss'?Math.max(0,Math.min(1,1-pose.hiss/.65)):0;
+  const pop=mode==='hiss'?1+.65*(progress<.18?progress/.18:(1-progress)/.82):1;
+  c.save();c.translate(0,mode==='roar'?-27:-22);c.scale(pop,pop);
+  if(mode==='roar')c.rotate(-.1+Math.sin((pose.time||0)*22)*.025);
+  poly([[-23,-7],[-27,-29],[-10,-19],[10,-19],[27,-29],[23,-7]],fur);
+  poly([[-21,-12],[-23,-23],[-12,-17]],'#e5a59a');poly([[21,-12],[23,-23],[12,-17]],'#e5a59a');
+  oval(0,0,29,26,fur);oval(-12,10,14,13,cream,false);oval(12,10,14,13,cream,false);
+  for(const sign of [-1,1]){line([[sign*8,-18],[sign*10,-11]],'#b7814e',3);line([[sign*17,-16],[sign*19,-9]],'#b7814e',2);}
+  if(mode==='roar'){
+   line([[-19,-7],[-13,-11],[-7,-7]],ink,2.5);line([[7,-7],[13,-11],[19,-7]],ink,2.5);
+   oval(0,10,10,16,'#633b32');oval(0,20,6,5,'#db8e88',false);
+   poly([[-7,0],[-3,1],[-5,7]],'#fff9e7');poly([[7,0],[3,1],[5,7]],'#fff9e7');
+  }else{
+   // 参考耄耋脸：压低的眼皮、宽脸、张开的嘴和两颗獠牙。
+   line([[-22,-10],[-10,-6],[-5,-9]],ink,3);line([[5,-9],[10,-6],[22,-10]],ink,3);
+   oval(-13,-5,5,2.8,'#78724b',false);oval(13,-5,5,2.8,'#78724b',false);oval(-13,-5,1.2,3,ink,false);oval(13,-5,1.2,3,ink,false);
+   oval(0,14,15,17,'#67392d');oval(0,24,9,6,'#d68a84',false);
+   poly([[-12,2],[-5,4],[-9,15]],'#fffae8');poly([[12,2],[5,4],[9,15]],'#fffae8');
+   poly([[-8,27],[-4,22],[-2,28]],'#fff5df');poly([[8,27],[4,22],[2,28]],'#fff5df');
+  }
+  poly([[-5,0],[5,0],[0,5]],'#c78c7d');
+  for(const sign of [-1,1]){line([[sign*17,6],[sign*38,2]],'#faf0db',1.2);line([[sign*19,10],[sign*40,12]],'#faf0db',1.2);}
+  hat(0,-29);c.restore();
+  if(mode==='roar')for(const sign of [-1,1]){c.strokeStyle='#c99b60';c.lineWidth=2;c.beginPath();c.arc(sign*18,-48,18+(Math.sin((pose.time||0)*13)+1)*4,sign<0?2.7:4.8,sign<0?4.4:6.6);c.stroke();}
+ }
+ c.restore();return true;
+};
+
+window.paintSkillCaption=function(c,word,x,y,left,duration,color){
+ const t=Math.max(0,Math.min(1,1-left/duration)),pop=1-Math.pow(1-Math.min(1,t/.2),3);
+ const fontSize=(word==='哈'?46:40)+(word==='哈'?108:92)*pop;
+ c.save();c.translate(x,Math.max(95,y));c.rotate(Math.sin(t*21)*.035*(1-t));c.globalAlpha=t<.65?1:Math.max(0,(1-t)/.35);
+ c.font='900 '+fontSize+'px "Microsoft YaHei",sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+ c.shadowColor='#593b3b55';c.shadowBlur=12;c.shadowOffsetY=5;c.lineWidth=fontSize*.12;c.strokeStyle='#fff8e4';c.strokeText(word,0,0);c.shadowBlur=0;c.shadowOffsetY=0;c.fillStyle=color;c.fillText(word,0,0);c.restore();
+};
+
 // 第一关：同学的 E/F/Q 玩法规则 + test 的地图与美术。
 
 window.RestaurantMap = {
@@ -708,6 +774,7 @@ function drawStationsCached(){
   if(g.frying.active)processingBar(g.stations.fryer,g.frying);
 }
 function drawChefSprite(x,y,holding){
+  if(window.paintChefSkill(ctx,x,y,{boost:g.spinoTimer,time:g.elapsed,scale:1.12}))return true;
   const image=holding&&window.ChefArt.holdingImage?window.ChefArt.holdingImage:window.ChefArt.image;
   if(!image)return false;
   let cached=renderCache.chef.get(holding);
@@ -722,7 +789,7 @@ function drawChef(){
   if(g.spinoTimer>0){
     ctx.save();ctx.strokeStyle='#e6a64e';ctx.lineWidth=3;ctx.globalAlpha=.65+.2*Math.sin(g.elapsed*9);
     ctx.beginPath();ctx.ellipse(x,y+24,34,12,0,0,Math.PI*2);ctx.stroke();
-    ctx.fillStyle='#db805b';ctx.beginPath();ctx.moveTo(x-26,y+5);ctx.lineTo(x-33,y-17);ctx.lineTo(x-20,y-11);ctx.lineTo(x,y-57);ctx.lineTo(x+20,y-11);ctx.lineTo(x+33,y-17);ctx.lineTo(x+26,y+5);ctx.fill();ctx.restore();
+    ctx.restore();
   }
   ctx.fillStyle='#886b4b25';ctx.beginPath();ctx.ellipse(x,y+25,23,8,0,0,Math.PI*2);ctx.fill();
   if(!drawChefSprite(x,y,!!g.hasItem)){

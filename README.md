@@ -8,6 +8,8 @@
 
 从首页选择第一关、第二关或第三关。建议使用电脑和键盘试玩。
 
+**[阅读游戏制作说明与操作指南](docs/game-guide.md)**
+
 ## 三家小店
 
 - 第一关「猫猫回转食堂」：四道料理、回转出餐，新手练习。
@@ -25,6 +27,8 @@ cat-kitchen/
 ├── index.html                     # 游戏首页，与 README.md 同级
 ├── README.md
 ├── .nojekyll
+├── docs/
+│   └── game-guide.md               # 游戏制作说明
 ├── level1/
 │   ├── index.html
 │   ├── level1.css

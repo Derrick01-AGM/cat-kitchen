@@ -8,7 +8,7 @@
 <body><main>
 <header class="masthead"><div><div class="eyebrow">CAT KITCHEN / LEVEL 03</div><h1>猫猫风味街<span>300 秒营业挑战</span></h1><p class="intro">四道小吃 + 六道日料 + 六道甜品饮品；三辆推车独立接单；海鲜直接取料，六道甜品饮品与五杯容量茶壶已开放。</p></div><div class="actions"><button id="music-toggle" type="button" aria-pressed="true">音乐：开</button><button id="sfx-toggle" type="button" class="light" aria-pressed="true">音效：开</button><button id="pause" type="button">暂停 · P</button><button id="reset" type="button" class="primary">重新开始</button><button id="exit" type="button">退出本局 · Esc</button><button hidden id="patrol"></button><button hidden id="impound-0"></button><button hidden id="impound"></button><button hidden id="impound-2"></button></div></header>
 <div class="skill-controls"><button id="skill-j">J 脊背龙</button><button id="skill-k">K 老吴</button><button id="skill-l">L 小猫哈气</button></div><div id="test-hud" class="test-hud" role="status"></div><div class="map-shell"><canvas id="map" width="1600" height="930" tabindex="0" aria-label="第三关街边地图：左侧一个 E 型大摊位和三辆竖向推车，中间双向马路，右侧三处暂扣位。使用 WASD 或方向键移动主厨，E 拿放示意餐盘。">浏览器需要支持 Canvas 才能显示地图。</canvas><div class="hud"><span class="chip"><i></i>E 型大摊位 · 推车在位封路</span><span class="chip patrol" id="patrol-state"><i></i>巡逻猫暂时离开</span></div></div>
-<div class="mobile-controls"><div class="dpad"><button data-dir="up" aria-label="向上">↑</button><button data-dir="left" aria-label="向左">←</button><button data-dir="down" aria-label="向下">↓</button><button data-dir="right" aria-label="向右">→</button></div><button id="touch-e">拿放 / 出餐 / 拖车</button><button id="touch-f">按住切菜</button></div>
+<div class="mobile-controls"><div class="dpad"><button data-dir="up" aria-label="向上">↑</button><button data-dir="left" aria-label="向左">←</button><button data-dir="down" aria-label="向下">↓</button><button data-dir="right" aria-label="向右">→</button></div><button id="touch-e">拿放 / 拖车</button><button id="touch-f">按住切菜</button></div>
 <section class="recipe-book" aria-labelledby="recipe-title">
   <div class="recipe-heading"><div><span class="recipe-eyebrow">CAT KITCHEN / RECIPE BOOK</span><h2 id="recipe-title">料理手册 <span>16 道菜的制作指南</span></h2></div><span class="recipe-tip">材料放在同一备菜台或推车同一格，自动合成</span></div>
   <section class="recipe-group snacks" aria-labelledby="snack-title">
@@ -45,9 +45,9 @@
     <div class="tea-note"><strong>红茶与抹茶怎么煮？</strong><p>空手到接水处按 E 取水 → 到空壶按 E 加水 → 轻按 F 煮 3 秒 → 拿杯子按 E 接茶。</p><span>每壶供应 5 杯，用完后重新加水、煮茶；煮茶时可以离开。</span></div>
   </section>
   <details class="guide-details"><summary>操作与营业小贴士</summary><div class="guide-details-body">
-    <article><strong>拿放与加工</strong><p>WASD / 方向键移动，Shift 冲刺，E 拿放和出餐。按住 F 切菜，松手或离开保留进度；锅具与烧烤架放入材料后自动加工。三块切菜板通用，两个油锅均可炸薯条与天妇罗。杯子可在配料站直接加料，也可在同一备菜台合并；不能重复或混入不相容配料。</p></article>
+    <article><strong>拿放与加工</strong><p>WASD / 方向键移动，Shift 冲刺，E 拿放材料与成品。按住 F 切菜，松手或离开保留进度；锅具与烧烤架放入材料后自动加工。三块切菜板通用，两个油锅均可炸薯条与天妇罗。杯子可在配料站直接加料，也可在同一备菜台合并；不能重复或混入不相容配料。</p></article>
     <article><strong>投掷与技能</strong><p>轻按 Q 放下，长按 Q 蓄力投掷（最多 1.2 秒，60～330 像素）。蓄力时显示路径与落点，沿途适合的工作台会接住食材；绿色表示可接收，红色表示无法接收，金色表示落地。J：16 秒移速 ×1.8、加工 ×2，冷却 30 秒。K：冻结顾客与城管 5 秒，冷却 30 秒。L：取消预警或驱赶巡逻猫，冷却 40 秒。P 暂停，Esc 退出本局，切出窗口自动暂停。</p></article>
-    <article><strong>点餐与计分</strong><p>每局 300 秒，首位顾客 5 秒后到达，后续每 4～8 秒来一位；同时最多 7 位，每队最多 3 位。对应队列有人点这道菜即可出餐，无需按队伍顺序；没人点的菜不能出餐。耐心 52.5 秒，超时扣 5 分；收到餐停止扣耐心，取餐 3 秒后离开，加 15 分。</p></article>
+    <article><strong>点餐与计分</strong><p>每局 300 秒，首位顾客 5 秒后到达，后续每 4～8 秒来一位；同时最多 7 位，每队最多 3 位。把成品放进对应推车的任意摆盘格，有人点这道菜就会自动领取，无需按排队顺序；没人点的成品保留在车上。耐心 52.5 秒，超时扣 5 分；收到餐停止扣耐心，取餐 3 秒后离开，加 15 分。</p></article>
     <article><strong>推车与巡逻</strong><p>每辆推车有四个摆盘位，可暂存食物，也可合成汉堡、两种寿司、裹粉虾及杯装饮品；材料须叠放在同一辆推车的同一格，四格分别独立合成；空手 E 可逐份取回未合成的材料。车上食物或顾客尚未带走的餐点被发现，会触发扣车并清空食物，顾客留在原位继续排队。空手过马路到暂扣位按 E 拿车，回到原车位自动归还后可继续出餐；注意车辆，撞车眩晕约 1.8 秒。</p></article>
   </div></details>
 </section>
@@ -65,7 +65,7 @@
         <div><strong>7 <small>位</small></strong><span>同时顾客上限</span></div>
       </div>
       <div class="dialog-features">
-        <article><span class="feature-number">01</span><div><h3>三辆推车，各有拿手菜</h3><p>上方出小吃，中间出日料，下方出甜品饮品。每队最多 3 位，有人点这道菜就能出餐，无需按排队顺序。</p></div></article>
+        <article><span class="feature-number">01</span><div><h3>三辆推车，各有拿手菜</h3><p>上方出小吃，中间出日料，下方出甜品饮品。每队最多 3 位。成品放在对应推车的格子里，点了这道菜的顾客会自动领取，无需按排队顺序。</p></div></article>
         <article><span class="feature-number">02</span><div><h3>巡逻来了，留意车上的食物</h3><p>推车上暂存的食物、顾客尚未带走的餐点，都可能被巡逻猫发现，导致推车被扣、食物清空。</p></div></article>
         <article><span class="feature-number">03</span><div><h3>过街取车，小心来往车辆</h3><p>空手到对面暂扣位按 E 拖车，回到原车位自动归还。被车撞到会短暂眩晕，记得看好路再走。</p></div></article>
       </div>

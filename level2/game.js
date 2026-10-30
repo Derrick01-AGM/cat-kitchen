@@ -1,3 +1,69 @@
+// 技能造型由游戏计时驱动；不另设计时器，暂停、重开与技能结束同步恢复。
+window.paintChefSkill=function(c,x,y,pose){
+ const mode=pose.hiss>0?'hiss':pose.roar>0?'roar':pose.boost>0?'spino':null;
+ if(!mode)return false;
+ c.save();c.translate(x,y);const size=pose.scale||1;c.scale(size,size);
+ c.lineJoin='round';c.lineCap='round';c.lineWidth=1.7;c.strokeStyle='#aa7850';
+ const fur='#eac08a',cream='#fff0d5',ink='#62452f';
+ function oval(x,y,rx,ry,color,edge=true){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=color;c.fill();if(edge)c.stroke();}
+ function poly(points,color){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fillStyle=color;c.fill();c.stroke();}
+ function line(points,color=ink,width=1.7){c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.strokeStyle=color;c.lineWidth=width;c.stroke();c.strokeStyle='#aa7850';c.lineWidth=1.7;}
+ function hat(x,y){oval(x-13,y-6,10,9,'#fffdf5');oval(x,y-10,13,11,'#fffdf5');oval(x+13,y-6,10,9,'#fffdf5');poly([[x-20,y-6],[x+20,y-6],[x+18,y+6],[x-18,y+6]],'#fff9ec');}
+ if(mode==='spino'){
+  // 参考照片的侧身圆弧拱背、四足站姿与回头看人的脸，毛尖只做少量点缀。
+  c.save();c.translate(-29,-1);c.rotate(-.24);oval(-6,-2,6,23,fur);c.restore();
+  oval(-17,12,6,15,fur);oval(13,11,6,16,fur);
+  c.beginPath();c.moveTo(-32,8);c.bezierCurveTo(-39,-10,-32,-51,-11,-56);c.bezierCurveTo(13,-64,25,-40,28,-10);c.quadraticCurveTo(23,9,4,10);c.quadraticCurveTo(-16,1,-32,8);c.fillStyle=fur;c.fill();c.stroke();
+  oval(-26,17,7,15,fur);oval(24,16,6,15,fur);oval(-27,30,9,4,cream);oval(25,30,9,4,cream);
+  for(let i=0;i<4;i++)line([[-24+i*10,-43],[-27+i*10,-29],[-23+i*10,-17]],'#bb8752',2.5);
+  poly([[-15,-55],[-11,-60],[-7,-55]],fur);poly([[-4,-57],[0,-62],[4,-55]],fur);
+  poly([[7,-29],[7,-48],[19,-39],[32,-47],[34,-28]],fur);
+  oval(21,-20,22,21,fur);oval(21,-11,15,10,cream,false);
+  hat(20,-49);
+  oval(13,-23,5,6,'#fff5d8',false);oval(29,-23,5,6,'#fff5d8',false);
+  oval(14,-22,2.8,4,'#788653',false);oval(28,-22,2.8,4,'#788653',false);
+  oval(14,-22,1.3,3.5,ink,false);oval(28,-22,1.3,3.5,ink,false);
+  poly([[18,-13],[24,-13],[21,-9]],'#cc8e80');line([[21,-8],[17,-5],[13,-6]]);line([[21,-8],[25,-5],[29,-6]]);
+  line([[6,-12],[-4,-14]],'#b19372',1);line([[36,-12],[46,-14]],'#b19372',1);
+ }else{
+  // 保留主厨的奶油色身体与白帽，变换头部表情和姿态。
+  oval(0,6,23,23,fur);oval(0,10,16,17,cream,false);oval(-14,25,10,6,cream);oval(14,25,10,6,cream);
+  const progress=mode==='hiss'?Math.max(0,Math.min(1,1-pose.hiss/.65)):0;
+  const pop=mode==='hiss'?1+.65*(progress<.18?progress/.18:(1-progress)/.82):1;
+  c.save();c.translate(0,mode==='roar'?-27:-22);c.scale(pop,pop);
+  if(mode==='roar')c.rotate(-.1+Math.sin((pose.time||0)*22)*.025);
+  poly([[-23,-7],[-27,-29],[-10,-19],[10,-19],[27,-29],[23,-7]],fur);
+  poly([[-21,-12],[-23,-23],[-12,-17]],'#e5a59a');poly([[21,-12],[23,-23],[12,-17]],'#e5a59a');
+  oval(0,0,29,26,fur);oval(-12,10,14,13,cream,false);oval(12,10,14,13,cream,false);
+  for(const sign of [-1,1]){line([[sign*8,-18],[sign*10,-11]],'#b7814e',3);line([[sign*17,-16],[sign*19,-9]],'#b7814e',2);}
+  if(mode==='roar'){
+   line([[-19,-7],[-13,-11],[-7,-7]],ink,2.5);line([[7,-7],[13,-11],[19,-7]],ink,2.5);
+   oval(0,10,10,16,'#633b32');oval(0,20,6,5,'#db8e88',false);
+   poly([[-7,0],[-3,1],[-5,7]],'#fff9e7');poly([[7,0],[3,1],[5,7]],'#fff9e7');
+  }else{
+   // 参考耄耋脸：压低的眼皮、宽脸、张开的嘴和两颗獠牙。
+   line([[-22,-10],[-10,-6],[-5,-9]],ink,3);line([[5,-9],[10,-6],[22,-10]],ink,3);
+   oval(-13,-5,5,2.8,'#78724b',false);oval(13,-5,5,2.8,'#78724b',false);oval(-13,-5,1.2,3,ink,false);oval(13,-5,1.2,3,ink,false);
+   oval(0,14,15,17,'#67392d');oval(0,24,9,6,'#d68a84',false);
+   poly([[-12,2],[-5,4],[-9,15]],'#fffae8');poly([[12,2],[5,4],[9,15]],'#fffae8');
+   poly([[-8,27],[-4,22],[-2,28]],'#fff5df');poly([[8,27],[4,22],[2,28]],'#fff5df');
+  }
+  poly([[-5,0],[5,0],[0,5]],'#c78c7d');
+  for(const sign of [-1,1]){line([[sign*17,6],[sign*38,2]],'#faf0db',1.2);line([[sign*19,10],[sign*40,12]],'#faf0db',1.2);}
+  hat(0,-29);c.restore();
+  if(mode==='roar')for(const sign of [-1,1]){c.strokeStyle='#c99b60';c.lineWidth=2;c.beginPath();c.arc(sign*18,-48,18+(Math.sin((pose.time||0)*13)+1)*4,sign<0?2.7:4.8,sign<0?4.4:6.6);c.stroke();}
+ }
+ c.restore();return true;
+};
+
+window.paintSkillCaption=function(c,word,x,y,left,duration,color){
+ const t=Math.max(0,Math.min(1,1-left/duration)),pop=1-Math.pow(1-Math.min(1,t/.2),3);
+ const fontSize=(word==='哈'?46:40)+(word==='哈'?108:92)*pop;
+ c.save();c.translate(x,Math.max(95,y));c.rotate(Math.sin(t*21)*.035*(1-t));c.globalAlpha=t<.65?1:Math.max(0,(1-t)/.35);
+ c.font='900 '+fontSize+'px "Microsoft YaHei",sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+ c.shadowColor='#593b3b55';c.shadowBlur=12;c.shadowOffsetY=5;c.lineWidth=fontSize*.12;c.strokeStyle='#fff8e4';c.strokeText(word,0,0);c.shadowBlur=0;c.shadowOffsetY=0;c.fillStyle=color;c.fillText(word,0,0);c.restore();
+};
+
 // 小猫厨房第二关 · 本地离线版，无需安装依赖。
 'use strict';
 const CHEF_DATA='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1NzYiIGhlaWdodD0iNTc2IiB2aWV3Qm94PSIwIDAgMTQ0IDE0NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImZ1ciIgeDE9IjAiIHkxPSIwIiB4Mj0iLjciIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjZmZmMGQzIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZWRjNThmIi8+PC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iY3JlYW0iIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjZmZmZWY3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZjNlOGQ1Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iaGF0IiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI2ZmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2VhZThkZiIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImV5ZSI+PHN0b3Agc3RvcC1jb2xvcj0iIzViNTI1MCIvPjxzdG9wIG9mZnNldD0iLjY1IiBzdG9wLWNvbG9yPSIjMzQzNDM4Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjQyNzMxIi8+PC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CiAgPCEtLSDouqvkvZPlkoznn63nn63nmoTliY3niKrvvIzkv53nlZnlj4LogIPnhafniYfkuK3nmoTnmb3og7jkuI7lpbbmsrnmqZjoibLog4zmr5vjgIIgLS0+CiAgPHBhdGggZD0iTTQ0IDEwNVEyNSAxMDUgMjYgMTIyUTI4IDEyOSA0NCAxMjMiIGZpbGw9InVybCgjZnVyKSIgc3Ryb2tlPSIjYjU5MTZmIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxwYXRoIGQ9Ik00NyA5NFEzMiAxMDYgMzggMTI1UTQ1IDEzNSA3MiAxMzRRMTAwIDEzNSAxMDcgMTI1UTExMyAxMDUgOTcgOTRaIiBmaWxsPSJ1cmwoI2Z1cikiIHN0cm9rZT0iI2I1OTE2ZiIgc3Ryb2tlLXdpZHRoPSIxLjciLz4KICA8cGF0aCBkPSJNNTEgOTdRNzIgMTAzIDk0IDk3TDk2IDExMUw5MCAxMDlMODggMTE3TDgyIDExNEw3NyAxMjJMNzAgMTE5TDY0IDEyNEw1OSAxMTZMNTIgMTE5TDQ5IDEwOVoiIGZpbGw9InVybCgjY3JlYW0pIi8+CiAgPGcgaWQ9ImNoZWYtcmVzdGluZy1wYXdzIj4KICA8ZWxsaXBzZSBjeD0iNTIiIGN5PSIxMjUiIHJ4PSIxMyIgcnk9IjkiIGZpbGw9IiNmZmY2ZTciIHN0cm9rZT0iI2M0YWM5NiIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KICA8ZWxsaXBzZSBjeD0iOTIiIGN5PSIxMjUiIHJ4PSIxMyIgcnk9IjkiIGZpbGw9IiNmZmY2ZTciIHN0cm9rZT0iI2M0YWM5NiIgc3Ryb2tlLXdpZHRoPSIxLjMiLz4KICA8cGF0aCBkPSJNNDggMTI2VjEzME01MyAxMjZWMTMxTTg4IDEyNlYxMzFNOTMgMTI2VjEzMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZGFiNmFhIiBzdHJva2Utd2lkdGg9IjEuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPC9nPgogIDwhLS0g5bCP6ICM56uL6LW355qE6ICz5py177yM5LiN6IO96KKr55m95Y6o5biI5bi95a6M5YWo6YGu5L2P44CCIC0tPgogIDxwYXRoIGQ9Ik0zNyA3M1EyNyA2NSAyOSA0NFE0MyA0NCA1MiA1OUw5NCA1OVExMDQgNDUgMTE2IDQ0UTExNyA2NSAxMDcgNzRaIiBmaWxsPSJ1cmwoI2Z1cikiIHN0cm9rZT0iI2I1OTE2ZiIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KICA8cGF0aCBkPSJNMzUgNTJRNDQgNTQgNDYgNjJMMzYgNjZaIE0xMDkgNTJRMTAwIDU0IDk5IDYyTDEwOSA2NloiIGZpbGw9IiNlNWI1YTUiLz4KICA8cGF0aCBkPSJNMzkgNThRNTMgNDkgNzIgNTFROTQgNDkgMTA3IDYxUTExNyA3MyAxMTMgODhMMTE3IDkyTDExMSA5NEwxMTMgOTlMMTA2IDEwMFE5NiAxMTMgNzIgMTE0UTQ3IDExNCAzNyAxMDFMMzAgMTAwTDMzIDk0TDI3IDkyTDMxIDg4UTI3IDcwIDM5IDU4WiIgZmlsbD0idXJsKCNmdXIpIiBzdHJva2U9IiNiNTkxNmYiIHN0cm9rZS13aWR0aD0iMS44IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPCEtLSDmn5TlkozmqZjoibLpop3nurnjgIHnmb3oibLpvLvmooHkuI7ok6zmnb7nmoTlj6PpvLvjgIIgLS0+CiAgPHBhdGggZD0iTTUzIDU2UTU0IDY1IDYyIDcwUTU2IDU5IDYxIDU0TTY4IDUzUTY3IDY2IDcyIDczUTc3IDY1IDc2IDUzTTg0IDU0UTg5IDYwIDgzIDcwUTk0IDY0IDkyIDU3IiBmaWxsPSIjZDZhNTZkIiBvcGFjaXR5PSIuNyIvPgogIDxwYXRoIGQ9Ik0zNCA3OUw0NCA4MkwzMyA4NU0xMTAgNzlMMTAwIDgyTDExMiA4NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDZhNTZkIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iLjc1Ii8+CiAgPHBhdGggZD0iTTcyIDcxUTY2IDc4IDY1IDg2UTQ5IDg1IDQ3IDk2UTUyIDEwOCA3MiAxMDlROTIgMTA5IDk4IDk2UTk2IDg1IDc5IDg2UTc4IDc4IDcyIDcxWiIgZmlsbD0idXJsKCNjcmVhbSkiLz4KICA8ZWxsaXBzZSBjeD0iNTMiIGN5PSI4MCIgcng9IjkuNCIgcnk9IjEwLjEiIGZpbGw9IiNmZmY1ZTQiIHN0cm9rZT0iI2I2OWI4MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8ZWxsaXBzZSBjeD0iOTEiIGN5PSI4MCIgcng9IjkuNCIgcnk9IjEwLjEiIGZpbGw9IiNmZmY1ZTQiIHN0cm9rZT0iI2I2OWI4MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8ZWxsaXBzZSBjeD0iNTQiIGN5PSI4MSIgcng9IjcuNCIgcnk9IjguNiIgZmlsbD0idXJsKCNleWUpIi8+CiAgPGVsbGlwc2UgY3g9IjkwIiBjeT0iODEiIHJ4PSI3LjQiIHJ5PSI4LjYiIGZpbGw9InVybCgjZXllKSIvPgogIDxlbGxpcHNlIGN4PSI1MS41IiBjeT0iNzcuNSIgcng9IjIuNSIgcnk9IjIuOSIgZmlsbD0iI2ZmZiIvPjxlbGxpcHNlIGN4PSI4Ny41IiBjeT0iNzcuNSIgcng9IjIuNSIgcnk9IjIuOSIgZmlsbD0iI2ZmZiIvPgogIDxjaXJjbGUgY3g9IjU3IiBjeT0iODUiIHI9IjEuMSIgZmlsbD0iI2I3YzBjNyIvPjxjaXJjbGUgY3g9IjkzIiBjeT0iODUiIHI9IjEuMSIgZmlsbD0iI2I3YzBjNyIvPgogIDxlbGxpcHNlIGN4PSI0MiIgY3k9Ijk0IiByeD0iNiIgcnk9IjMiIGZpbGw9IiNlZmM0YWUiIG9wYWNpdHk9Ii41NSIvPjxlbGxpcHNlIGN4PSIxMDIiIGN5PSI5NCIgcng9IjYiIHJ5PSIzIiBmaWxsPSIjZWZjNGFlIiBvcGFjaXR5PSIuNTUiLz4KICA8cGF0aCBkPSJNNjcgOTJRNzIgODkgNzcgOTJRNzcgOTQgNzIgOTdRNjcgOTQgNjcgOTJaIiBmaWxsPSIjZGM5YjkxIiBzdHJva2U9IiNiZDgwN2EiIHN0cm9rZS13aWR0aD0iLjgiLz4KICA8cGF0aCBkPSJNNzIgOTdWMTAwTTcyIDEwMFE2OCAxMDQgNjUgMTAwTTcyIDEwMFE3NiAxMDQgNzkgMTAwIiBmaWxsPSJub25lIiBzdHJva2U9IiNhZDgzNzYiIHN0cm9rZS13aWR0aD0iMS4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8cGF0aCBkPSJNNDQgOTVMMjkgOTNNNDQgOTlMMjkgMTAxTTEwMCA5NUwxMTUgOTNNMTAwIDk5TDExNSAxMDEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MzYWQ5NCIgc3Ryb2tlLXdpZHRoPSIxLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0g55m96Imy5aSn5Y6o5biI5bi977ya6JOs5p2+6KS255qx5bi95Yag5LiO5a695bi95bim44CCIC0tPgogIDxwYXRoIGQ9Ik0zOCAzN1EyNCAzMyAyOCAyMVEzMCAxMyA0MCAxNFE0MyA0IDU0IDhRNjEgMCA3MiA1UTg0IDEgOTEgOVExMDMgNSAxMDggMTZRMTIwIDE4IDExNiAyOVExMTQgMzcgMTA2IDM4TDEwMiA0N0g0MloiIGZpbGw9InVybCgjaGF0KSIgc3Ryb2tlPSIjYjVhYTliIiBzdHJva2Utd2lkdGg9IjEuNyIvPgogIDxwYXRoIGQ9Ik00MCAxOVEzNyAyNyA0NCAzNU01MyAxM1E0OSAyNCA1NiAzNU02NiAxMFE2MiAyMiA2NiAzNU04MCAxMFE4NSAyMiA3OSAzNU05NCAxNVExMDAgMjUgOTEgMzVNMTA3IDIxUTExMCAyOCAxMDEgMzUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Q4ZDVjZCIgc3Ryb2tlLXdpZHRoPSIyLjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik00MCAzNlE3MiAzMCAxMDUgMzZMMTAzIDUwUTcyIDQ0IDQyIDUwWiIgZmlsbD0idXJsKCNoYXQpIiBzdHJva2U9IiNiNWFhOWIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHBhdGggZD0iTTQ2IDM5UTcyIDM1IDEwMCAzOSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K';
@@ -24,7 +90,10 @@ const bottomStations=[
   {type:'counter',label:'备菜台4'},{type:'fryer',label:'油锅'},{type:'trash',label:'垃圾桶2'}
 ];
 const tables=[335,445,555,665,775,885,995,1105].map((x,i)=>({id:'top'+i,row:'top',x:x-50,y:298,w:100,h:60,...topStations[i]})).concat([345,470,595,720,845,970,1095].map((x,i)=>({id:'bottom'+i,row:'bottom',x:x-50,y:555,w:100,h:60,...bottomStations[i]})));
-const obstacles=[...tables,POOL_RIM];
+// 下排桌面之间的空气墙只参与碰撞，不绘制，避免主厨挤进狭缝。
+const bottomRow=tables.filter(t=>t.row==='bottom').sort((a,b)=>a.x-b.x);
+const bottomAirWalls=bottomRow.slice(1).map((next,i)=>({x:bottomRow[i].x+bottomRow[i].w,y:next.y,w:next.x-bottomRow[i].x-bottomRow[i].w,h:next.h})).filter(r=>r.w>0);
+const obstacles=[...tables,...bottomAirWalls,POOL_RIM];
 const FOOD_NAMES={salmon:'生三文鱼',salmonSlices:'三文鱼刺身',rawRice:'生米',cookedRice:'熟米饭',nori:'海苔',salmonSushi:'三文鱼寿司',shrimp:'生虾',batter:'面糊',coatedShrimp:'裹粉虾',tempura:'天妇罗',crab:'生蟹',marinatedShrimp:'生腌虾',marinatedCrab:'生腌蟹',grilledFish:'烤鱼',squid:'生鱿鱼',grilledSquid:'烤鱿鱼',grilledShrimp:'炙烤虾',searedShrimpSushi:'炙烤虾寿司'};
 const MARINADE_RECIPES={shrimp:{output:'marinatedShrimp',counter:'marinatedShrimpMade'},crab:{output:'marinatedCrab',counter:'marinatedCrabMade'}};
 const OVEN_RECIPES={salmon:{output:'grilledFish',counter:'grilledFishMade'},squid:{output:'grilledSquid',counter:'grilledSquidMade'},shrimp:{output:'grilledShrimp'}};
@@ -632,7 +701,8 @@ function drawChef(){
   const c=ctx,p=state.cat,fainted=state.faintLeft>0;
   if(state.spinoLeft>0){c.save();c.strokeStyle='#f8e2a4';c.lineWidth=3;c.globalAlpha=.7;c.beginPath();c.ellipse(p.x,p.y+18,30,12,0,0,Math.PI*2);c.stroke();c.restore();}
   ellipse(c,p.x,p.y+16,21,8,'#78563032');c.save();c.translate(p.x,p.y);if(fainted)c.rotate(.18);
-  if(chefImage&&chefImage.complete&&chefImage.width)c.drawImage(chefImage,-43,-57,86,86);
+  if(window.paintChefSkill(c,0,0,{boost:state.spinoLeft,roar:state.kTextLeft,time:state.elapsed})){}
+  else if(chefImage&&chefImage.complete&&chefImage.width)c.drawImage(chefImage,-43,-57,86,86);
   else{ellipse(c,0,0,23,23,'#edc18b');polygon(c,[[-20,-10],[-22,-30],[-7,-20]],'#edc18b');polygon(c,[[20,-10],[22,-30],[7,-20]],'#edc18b');ellipse(c,-8,-3,3,4,'#4c4c45');ellipse(c,8,-3,3,4,'#4c4c45');rounded(c,-21,-35,42,13,5,'#fff5df');}c.restore();
   if(state.hasFood&&!fainted)drawFood(state.hasFood,p.x,p.y+18,.7);
   if(fainted){
@@ -663,7 +733,7 @@ function drawSkillText(){
     }
   }
   if(state.kTextLeft>0){
-    const t=1-state.kTextLeft/1.5,pop=1-Math.pow(1-Math.min(1,t/.25),3),size=32+45*pop,alpha=t<.65?1:Math.max(0,(1-t)/.35);
+    const t=1-state.kTextLeft/1.5,pop=1-Math.pow(1-Math.min(1,t/.25),3),size=44+92*pop,alpha=t<.65?1:Math.max(0,(1-t)/.35);
     word('老吴',p.x,p.y-(state.faintLeft>0?200:112)-t*12,size,'#7a728d',alpha);
   }
 }
