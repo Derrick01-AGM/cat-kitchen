@@ -376,7 +376,7 @@ function collisionRects(){return[{x:64,y:138,w:72,h:714},...ROWS.flatMap((y,row)
 function canStand(x,y){if(x<42||x>1550||y<119||y>863)return false;const r=18;return!collisionRects().some(o=>{const nx=Math.max(o.x,Math.min(o.x+o.w,x)),ny=Math.max(o.y,Math.min(o.y+o.h,y));return(x-nx)**2+(y-ny)**2<r*r;});}
 function announce(message){if(state.lastMessage===message&&state.time-statusTimer<2)return;state.lastMessage=message;statusTimer=state.time;$('status').textContent=message;}
 function mapInteract(){if(state.paused||state.hidden)return;const p=state.cat;let chosen=null;for(const surface of state.surfaces){for(let i=0;i<surface.slots.length;i++){const pos=slotPosition(surface,i),dist=Math.hypot(pos.x-p.x,pos.y-p.y),valid=p.held?!surface.slots[i]:!!surface.slots[i],score=dist+((pos.x-p.x)*p.face < -8?90:0);if(valid&&dist<(surface.type==='cart'?150:119)&&(!chosen||score<chosen.score))chosen={surface,i,dist,score};}}
- if(!chosen){announce(p.held?'靠近一个空台面，按 E 放下餐盘。':'靠近摊位或推车上的餐盘，按 E 拿起。');return;}const s=chosen.surface;if(p.held){s.slots[chosen.i]=p.held;p.held=null;combineCart(s);announce('餐盘已放到'+(s.type==='cart'?'小吃推车':'固定摊位')+' '+(s.row+1)+'。');}else{p.held=s.slots[chosen.i];s.slots[chosen.i]=null;announce('拿到示意餐盘。可以搬到另一组摊位或空推车上。');}}
+ if(!chosen){announce(p.held?'靠近一个空台面，按 E 放下餐盘。':'靠近摊位或推车上的餐盘，按 E 拿起。');return;}const s=chosen.surface;if(p.held){s.slots[chosen.i]=p.held;p.held=null;announce('餐盘已放到'+(s.type==='cart'?'小吃推车':'固定摊位')+' '+(s.row+1)+'。');}else{p.held=s.slots[chosen.i];s.slots[chosen.i]=null;announce('拿到示意餐盘。可以搬到另一组摊位或空推车上。');}}
 function syncCartButtons(){state.carts.forEach((t,i)=>{const btn=$(['impound-0','impound','impound-2'][i]);btn.setAttribute('aria-pressed',String(t.impounded));btn.textContent=(t.impounded?'归还 ':'暂扣 ')+(i+1)+' 号推车';});}
 function toggleImpound(index=1){if(state.paused)return;if(typeof index!=='number')index=1;const t=state.carts[index];if(!t)return;t.impounded=!t.impounded;t.targetX=t.impounded?1350:CART_HOME_X;t.targetY=CART_HOME_Y[index];state.impounded=state.carts.some(t=>t.impounded);syncCartButtons();announce(t.impounded?'第 '+(index+1)+' 辆推车移入暂扣区，对应通道随之打开，可穿过马路。':'第 '+(index+1)+' 辆推车归位；三辆全部在位时会重新封住街边小吃区。');}
 const PATROL_SPEED=94*1.2;
@@ -387,7 +387,7 @@ function paintChefSprites(c){const p=state.cat,bob=p.moving&&!reduced?Math.sin(s
  // 朝向脚边的小箭头，避免将正面猫图整体翻转造成持物错位。
  path(c,[[p.x+p.face*30,p.y+17],[p.x+p.face*37,p.y+21],[p.x+p.face*30,p.y+25]],'#aa956e');}
 function nearestHint(){let best=null;for(const s of state.surfaces)for(let i=0;i<s.slots.length;i++){let point=slotPosition(s,i),dist=Math.hypot(point.x-state.cat.x,point.y-state.cat.y),valid=state.cat.held?!s.slots[i]:!!s.slots[i],score=dist+((point.x-state.cat.x)*state.cat.face < -8?90:0);if(dist<(s.type==='cart'?150:119)&&valid&&(!best||score<best.score))best={point,dist,score};}return best;}
-function draw(){ctx.clearRect(0,0,W,H);ctx.drawImage(base,0,0);ctx.save();ctx.beginPath();ctx.rect(ROAD.x,108,ROAD.w,H-108);ctx.clip();state.cars.forEach(v=>car(ctx,v));ctx.restore();state.carts.filter(t=>!t.carried).forEach(t=>cart(ctx,t));for(const s of state.surfaces.filter(s=>!state.carts[s.row].carried))for(let i=0;i<s.slots.length;i++){const pos=slotPosition(s,i);ctx.save();ctx.translate(pos.x,pos.y);if(s.type==='cart'){ctx.rotate(Math.PI/2);ctx.scale(CART_SCALE,CART_SCALE);}if(s.slots[i])food(ctx,s.slots[i],0,0,.79);else{el(ctx,0,2,26,18,'rgba(255,255,245,.3)');ctx.setLineDash([3,5]);el(ctx,0,2,25,17,null,'#c4c5ac',1);}ctx.restore();}
+function draw(){ctx.clearRect(0,0,W,H);ctx.drawImage(base,0,0);ctx.save();ctx.beginPath();ctx.rect(ROAD.x,108,ROAD.w,H-108);ctx.clip();state.cars.forEach(v=>car(ctx,v));ctx.restore();state.carts.filter(t=>!t.carried).forEach(t=>cart(ctx,t));for(const s of state.surfaces.filter(s=>!state.carts[s.row].carried))for(let i=0;i<s.slots.length;i++){const pos=slotPosition(s,i);ctx.save();ctx.translate(pos.x,pos.y);if(s.type==='cart'){ctx.rotate(Math.PI/2);ctx.scale(CART_SCALE,CART_SCALE);}if(s.slots[i])drawCartSlot(ctx,s,i,0,0,.79);else{el(ctx,0,2,26,18,'rgba(255,255,245,.3)');ctx.setLineDash([3,5]);el(ctx,0,2,25,17,null,'#c4c5ac',1);}ctx.restore();}
 
  drawKitchenTest();
  if(state.patrol.active){const p=state.patrol,inSnack=p.x<1005,message=inSnack?'最好别被我抓到在做吃的':'巡逻中',width=inSnack?190:68;officer(ctx,p);rr(ctx,p.x+(inSnack?65:0)-width/2,p.y-73,width,26,9,'#fff8e6','#b7bd9e',1);text(ctx,message,p.x+(inSnack?65:0),p.y-60,12,'#6c8378');}drawChef(ctx);drawLevelEffects();const hint=closestKitchen()||nearestPort()?null:nearestHint();if(hint&&!state.paused){rr(ctx,state.cat.x-52,state.cat.y-86,104,25,8,'#fffae9','#c6b68f',1);text(ctx,state.cat.held?'E 放下餐盘':'E 拿起餐盘',state.cat.x,state.cat.y-73,12,'#776347');}
@@ -830,7 +830,7 @@ var music=(()=>{
 // 第三关融合玩法：同学版的技能、投掷、撞车和拖车，配合已确认的地图与完整菜谱。
 const LEVEL3={duration:300,walkSpeed:240,sprintSpeed:330,patrolSpeed:150,firstVisit:12,warning:3,hitDuration:1.8,patience:52.5,penalty:5,maxCustomers:7,maxPerQueue:3,firstCustomer:5};
 
-var sfx=window.CatKitchenSfx.create({allowed:()=>state?.level?.started&&!state.level.over&&!state.paused&&!state.hidden,clips:{'bin':{src:'assets/sfx/bin.mp3',from:0,to:null,volume:0.5},'neige':{src:'assets/sfx/neige.mp3',from:0,to:null,volume:0.4},'car':{src:'assets/sfx/car.mp3',from:0,to:null,volume:0.12},'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.5},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'hiss':{src:'assets/sfx/hiss.mp3',from:0,to:2,volume:0.55},'ice':{src:'assets/sfx/ice.mp3',from:2,to:5,volume:0.32},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'boil':{src:'assets/sfx/boil.m4a',from:0,to:3,volume:0.3},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'stove':{src:'assets/sfx/stove.mp3',from:4,to:7,volume:0.32}}});
+var sfx=window.CatKitchenSfx.create({allowed:()=>state?.level?.started&&!state.level.over&&!state.paused&&!state.hidden,clips:{'bin':{src:'assets/sfx/bin.mp3',from:0,to:null,volume:0.5},'neige':{src:'assets/sfx/neige.mp3',from:0,to:null,volume:0.4},'car':{src:'assets/sfx/car.mp3',from:0,to:null,volume:0.12},'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.6},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'hiss':{src:'assets/sfx/hiss.mp3',from:0,to:2,volume:0.55},'ice':{src:'assets/sfx/ice.mp3',from:2,to:5,volume:0.32},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'boil':{src:'assets/sfx/boil.m4a',from:0,to:3,volume:0.3},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'stove':{src:'assets/sfx/stove.mp3',from:4,to:7,volume:0.32}}});
 function syncLevelSounds(){
  if(state.cat.stun<=0)sfx.stop('stun');
  const names=state.level.boost>0?['neige']:[];
@@ -869,7 +869,7 @@ function queuePoint(row,index){return{x:CART_HOME_X+154,y:CART_HOME_Y[row]+56+in
 function cartHasFood(row){return cartSurface(row).slots.some(Boolean)||servingGroups()[row].queue.some(q=>!!q.parcel);}
 function seizeCart(row){
  const t=state.carts[row];if(t.impounded||t.carried)return false;
- t.impounded=true;t.wasSeized=true;t.targetX=1350;t.targetY=CART_HOME_Y[row];cartSurface(row).slots.fill(null);
+ t.impounded=true;t.wasSeized=true;t.targetX=1350;t.targetY=CART_HOME_Y[row];cartSurface(row).slots.fill(null);cartSurface(row).slotLayers=[[],[],[],[]];
  for(const q of servingGroups()[row].queue){q.parcel=null;q.eating=0;}
  state.impounded=true;announce((row+1)+' 号推车被扣留，车上与顾客尚未带走的食物已清空！顾客在原地继续等候。');return true;
 }
@@ -992,7 +992,7 @@ function throwStationMatches(st,kind){
 function throwTargets(kind){
  const targets=state.test.stations.filter(st=>throwStationMatches(st,kind)).map(st=>({type:'station',id:st.id,x:st.x,y:st.y,hw:53*st.scale,hh:28*st.scale,plan:throwStationPlan(st,kind)}));
  for(const surface of state.surfaces){const cart=state.carts[surface.row];if(cart.impounded||cart.carried||Math.abs(cart.x-CART_HOME_X)>1)continue;
-  surface.slots.forEach((slot,index)=>{const pos=slotPosition(surface,index);targets.push({type:'cart',row:surface.row,index,...pos,hw:18,hh:16,plan:{ok:!slot,label:slot?'摆盘位已被占用':'推车暂存位'}});});
+  surface.slots.forEach((slot,index)=>{const pos=slotPosition(surface,index);targets.push({type:'cart',row:surface.row,index,...pos,hw:18,hh:16,plan:cartSlotPlan(surface,index,kind)});});
  }
  return targets;
 }
@@ -1028,8 +1028,8 @@ function placeThrown(kind,x,y,target){
  if(!target)target=throwTargets(kind).filter(t=>Math.abs(x-t.x)<=t.hw+12&&Math.abs(y-t.y)<=t.hh+12).sort((a,b)=>Math.hypot(x-a.x,y-a.y)-Math.hypot(x-b.x,y-b.y))[0];
  if(!target)return false;
  if(target.type==='cart'){
-  const cart=state.carts[target.row],surface=cartSurface(target.row);if(cart.impounded||cart.carried||Math.abs(cart.x-CART_HOME_X)>1||surface.slots[target.index])return false;
-  surface.slots[target.index]=kind;combineCart(surface);return true;
+  const cart=state.carts[target.row],surface=cartSurface(target.row);if(cart.impounded||cart.carried||Math.abs(cart.x-CART_HOME_X)>1)return false;
+  const plan=cartSlotPlan(surface,target.index,kind);if(!plan.ok)return false;setCartSlot(surface,target.index,plan.layers);return true;
  }
  const st=state.test.stations.find(s=>s.id===target.id);if(!st)return false;const plan=throwStationPlan(st,kind);if(!plan.ok)return false;
  if(st.type==='trash'){sfx.play('bin');return true;}
@@ -1102,7 +1102,7 @@ function drawLevelEffects(){
  const c=ctx,p=state.cat,l=state.level;
  for(const f of l.ground){el(c,f.x,f.y+13,18,5,'#8c795928');food(c,f.kind,f.x,f.y,.56);}
  for(const f of l.flying){const progress=f.distance?Math.max(0,Math.min(1,1-Math.hypot(f.tx-f.x,f.ty-f.y)/f.distance)):1;el(c,f.x,f.y+10,13,4,'#8c79592a');food(c,f.kind,f.x,f.y-Math.sin(progress*Math.PI)*28,.58);}
- if(l.carry>=0){const t=state.carts[l.carry];c.save();c.translate(p.stun>0?t.x+6:p.x+30,p.stun>0?t.y+120:p.y+20);c.scale(.42,.42);c.translate(-t.x-66,-t.y-112);cart(c,t);const s=cartSurface(t.row);s.slots.forEach((kind,i)=>{if(kind){const pos=slotPosition(s,i);food(c,kind,pos.x,pos.y,.75);}});c.restore();text(c,'拖车中 · 原位自动归还',p.x,p.y-82,12,'#937956');}
+ if(l.carry>=0){const t=state.carts[l.carry];c.save();c.translate(p.stun>0?t.x+6:p.x+30,p.stun>0?t.y+120:p.y+20);c.scale(.42,.42);c.translate(-t.x-66,-t.y-112);cart(c,t);const s=cartSurface(t.row);s.slots.forEach((kind,i)=>{if(kind){const pos=slotPosition(s,i);drawCartSlot(c,s,i,pos.x,pos.y,.75);}});c.restore();text(c,'拖车中 · 原位自动归还',p.x,p.y-82,12,'#937956');}
  if(l.charging&&p.held)drawThrowPreview();
  if(l.boost>0){for(let i=0;i<2;i++){const y=p.y-78-((state.time*30+i*22)%48);c.save();c.globalAlpha=1-((state.time*30+i*22)%48)/48;text(c,'内阁',p.x+(i?12:-12),y,16,'#bc805e',800);c.restore();}}
  if(l.burst>0){c.save();c.translate(p.x,p.y-85);const scale=1+(1.5-l.burst)*.5;c.scale(scale,scale);text(c,'老吴！',0,0,27,'#5d91a2',800);c.restore();}
@@ -1188,26 +1188,40 @@ drawDessertStation=function(st){
  text(c,{empty:'先 E 加水',filled:'按 F 煮 3 秒',brewing:'煮茶中 · 可离开',ready:pot.cupsLeft+'/5 杯 · E 接茶'}[pot.stage],st.x,y+15,10,'#788760');
 };
 
-// 四个摆盘位作为同一个合成区域；只消耗匹配的材料，其他物品留在原位。
-function combineCart(surface){
- let changed=true;
- while(changed){
-  changed=false;
-  for(const recipe of PREP_RECIPES){
-   const indices=[],used=new Set();
-   for(const part of recipe.parts){const index=surface.slots.findIndex((kind,i)=>kind===part&&!used.has(i));if(index<0)break;indices.push(index);used.add(index);}
-   if(indices.length!==recipe.parts.length)continue;
-   const place=Math.min(...indices);for(const index of indices)surface.slots[index]=null;surface.slots[place]=recipe.result;changed=true;
-  }
-  for(let cup=0;cup<surface.slots.length;cup++){
-   if(!CUP_CONTENTS.has(surface.slots[cup]))continue;
-   for(let i=0;i<surface.slots.length;i++){
-    if(i===cup||!surface.slots[i])continue;const result=cupWithIngredient(surface.slots[cup],surface.slots[i]);
-    if(result){surface.slots[cup]=result;surface.slots[i]=null;changed=true;}
-   }
+// 每个摆盘格独立保存材料，与备菜台使用相同的配方校验。
+function cartSlotLayers(surface,index){
+ surface.slotLayers??=[[],[],[],[]];
+ let layers=surface.slotLayers[index]||[];
+ if((layers.at(-1)||null)!==surface.slots[index])layers=surface.slots[index]?[surface.slots[index]]:[];
+ return surface.slotLayers[index]=layers;
+}
+function setCartSlot(surface,index,layers){surface.slotLayers??=[[],[],[],[]];surface.slotLayers[index]=[...layers];surface.slots[index]=layers.at(-1)||null;}
+function cartSlotPlan(surface,index,kind){return throwStationPlan({type:'surface',label:'推车第 '+(index+1)+' 格',layers:cartSlotLayers(surface,index)},kind);}
+function drawCartSlot(c,surface,index,x,y,scale){
+ const layers=cartSlotLayers(surface,index);
+ layers.forEach((kind,i)=>food(c,kind,x+(i-(layers.length-1)/2)*16,y,layers.length===1?scale:scale*.61));
+}
+function nearestCartSlot(){
+ const p=state.cat;let best=null;
+ for(const surface of state.surfaces){const cart=state.carts[surface.row];if(cart.impounded||cart.carried||Math.abs(cart.x-CART_HOME_X)>1)continue;
+  for(let index=0;index<surface.slots.length;index++){
+   if(!p.held&&!surface.slots[index])continue;
+   const point=slotPosition(surface,index),dist=Math.hypot(point.x-p.x,point.y-p.y),score=dist+((point.x-p.x)*p.face < -8?90:0);
+   if(dist<150&&(!best||score<best.score))best={surface,index,point,dist,score};
   }
  }
+ return best;
 }
+mapInteract=function(){
+ if(state.paused||state.hidden)return;const p=state.cat,target=nearestCartSlot();
+ if(!target){announce('靠近推车摆盘格，按 E 拿放材料。');return;}
+ const {surface,index}=target;
+ if(p.held){const plan=cartSlotPlan(surface,index,p.held);if(!plan.ok){announce(plan.label+'，请换一格或先取走材料。');return;}
+  setCartSlot(surface,index,plan.layers);p.held=null;
+  announce('已放入推车第 '+(index+1)+' 格；配方材料须放在同一格。');
+ }else{const layers=[...cartSlotLayers(surface,index)];p.held=layers.pop();setCartSlot(surface,index,layers);announce('拿起'+ITEMS[p.held].name+'。');}
+};
+nearestHint=function(){return nearestCartSlot();};
 const paintPreGrillJapaneseStation=drawJapaneseStation;
 drawJapaneseStation=function(st){
  if(st.type!=='oven'){paintPreGrillJapaneseStation(st);return;}

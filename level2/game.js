@@ -194,7 +194,7 @@ SEATS.forEach((seat,i)=>Object.assign(seat,{id:i,distance:projectOnBelt(seat.x,s
 let customerSequence=0,orderNodes=new Map(),uiNext=0;
 function canAct(){return state.phase==='playing'&&!state.suspended&&!state.paused&&state.faintLeft<=0;}
 
-var sfx=window.CatKitchenSfx.create({allowed:()=>typeof state!=='undefined'&&state?.phase==='playing'&&!state.paused&&!state.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.5},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'bin':{src:'assets/sfx/bin.mp3',from:0,to:null,volume:0.5},'neige':{src:'assets/sfx/neige.mp3',from:0,to:null,volume:0.4}}});
+var sfx=window.CatKitchenSfx.create({allowed:()=>typeof state!=='undefined'&&state?.phase==='playing'&&!state.paused&&!state.suspended,clips:{'cut':{src:'assets/sfx/cut.mp3',from:0,to:3,volume:0.32},'stun':{src:'assets/sfx/stun.mp3',from:0,to:null,volume:0.6},'eat':{src:'assets/sfx/eat.mp3',from:0,to:3,volume:0.4},'laowu':{src:'assets/sfx/laowu.mp3',from:0,to:3,volume:0.6},'oven':{src:'assets/sfx/oven.mp3',from:0,to:3,volume:0.32},'fryer':{src:'assets/sfx/fryer.mp3',from:0,to:3,volume:0.28},'bin':{src:'assets/sfx/bin.mp3',from:0,to:null,volume:0.5},'neige':{src:'assets/sfx/neige.mp3',from:0,to:null,volume:0.4}}});
 function syncLevelSounds(){
  if(state.faintLeft<=0)sfx.stop('stun');
  const nearby=state.faintLeft<=0&&!state.hasFood?nearestTable():null,names=state.spinoLeft>0?['neige']:[];
